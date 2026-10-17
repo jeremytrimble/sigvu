@@ -4,7 +4,7 @@ The [SigMF](https://sigmf.org/) ("Signal Metadata Format") is a standard format 
 
 SigVU is a portable and performant SigMF file viewer and annotation editor.
 
-![screenshot](doc/screenshot.png)
+![screenshot](https://raw.githubusercontent.com/jeremytrimble/specview/main/doc/screenshot.png)
 
 ## Features
 
