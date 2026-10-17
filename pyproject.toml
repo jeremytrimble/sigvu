@@ -4,7 +4,7 @@ version = "0.3.0"
 description = "SigMF File Viewer and Annotation Editor"
 readme = "README.md"
 license = { file = "LICENSE" }
-requires-python = ">=3.11"
+requires-python = ">=3.11,<3.15"
 authors = [
     { name = "Jeremy Trimble" },
 ]
