@@ -38,9 +38,9 @@ dependencies = [
 ]
 
 [project.urls]
-Homepage = "https://github.com/jeremytrimble/specview"
-"Bug Tracker" = "https://github.com/jeremytrimble/specview/issues"
-Changelog = "https://github.com/jeremytrimble/specview/blob/main/CHANGELOG.md"
+Homepage = "https://github.com/jeremytrimble/sigvu"
+"Bug Tracker" = "https://github.com/jeremytrimble/sigvu/issues"
+Changelog = "https://github.com/jeremytrimble/sigvu/blob/main/CHANGELOG.md"
 
 [dependency-groups]
 build = [

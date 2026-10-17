@@ -1,4 +1,4 @@
-"""PyInstaller hook for sigvu to include version information."""
+"""PyInstaller hook for SigVU to include version information."""
 
 from pathlib import Path
 import sys

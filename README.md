@@ -1,8 +1,8 @@
-# sigvu: A SigMF File Viewer and Annotation Editor
+# SigVU: A SigMF File Viewer and Annotation Editor
 
 The [SigMF](https://sigmf.org/) ("Signal Metadata Format") is a standard format for exchanging digitally-sampled time-series data with JSON-based metadata.  It is often used for storing real or complex-valued (IQ) time series data in digital signal processing or software-defined radio applications.
 
-`sigvu` is a portable and performant SigMF file viewer and annotation editor.
+SigVU is a portable and performant SigMF file viewer and annotation editor.
 
 ![screenshot](doc/screenshot.png)
 
@@ -50,6 +50,6 @@ uv run --group build --group dev poe test
 ```
 
 ## License
-sigvu is built on top of numerous open-source projects and proudly released under the GNU General Public License v3.
+SigVU is built on top of numerous open-source projects and proudly released under the GNU General Public License v3.
 
 Built with open-source, copilot, and love.
