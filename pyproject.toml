@@ -1,6 +1,6 @@
 [project]
-name = "specview"
-version = "0.3.0"
+name = "sigvu"
+version = "0.1.0"
 description = "SigMF File Viewer and Annotation Editor"
 readme = "README.md"
 license = { file = "LICENSE" }
@@ -45,13 +45,13 @@ Changelog = "https://github.com/jeremytrimble/specview/blob/main/CHANGELOG.md"
 [dependency-groups]
 build = [
     "pyinstaller>=6.16.0",
-    "specview",
+    "sigvu",
 ]
 dev = [
     "pytest>=8.4.1",
     "mypy>=1.18.2",
     "pytest-cov>=7.0.0",
-    "specview",
+    "sigvu",
     "pytest-qt>=4.5.0",
     "poethepoet>=0.31.1",
     "ruff>=0.8.4",
@@ -59,10 +59,11 @@ dev = [
 
 [project.gui-scripts]
 specview = "specview.main:main"
+sigvu = "specview.main:main"
 
 
 [tool.uv.sources]
-specview = { workspace = true }
+sigvu = { workspace = true }
 pyqtschema = { workspace = true }
 
 [tool.pytest.ini_options]
