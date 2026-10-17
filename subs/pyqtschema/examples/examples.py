@@ -6,9 +6,9 @@ from pydantic import BaseModel, Field
 
 
 class Units(Enum):
-    none = '1'
-    meter = 'm'
-    seconds = 's'
+    none = "1"
+    meter = "m"
+    seconds = "s"
 
 
 class UnitValue(BaseModel):
@@ -17,7 +17,7 @@ class UnitValue(BaseModel):
 
 
 class Limits(BaseModel):
-    name: str = Field(default='dummy', description='stored in name-column')
+    name: str = Field(default="dummy", description="stored in name-column")
     upper: UnitValue
     lower: UnitValue
 
@@ -64,17 +64,17 @@ class SimpleAnyOf(BaseModel):
 
 
 def write(filename: str, mod: BaseModel, indent=2):
-    path = Path(__file__).parent.joinpath('schema')
+    path = Path(__file__).parent.joinpath("schema")
     path.mkdir(exist_ok=True)
     path = path.joinpath(filename)
     schema = mod.schema_json(indent=indent)
-    with open(path, 'w') as OUT:
+    with open(path, "w") as OUT:
         OUT.write(schema)
 
 
-if __name__ == '__main__':
-    write('simple_values.json', Simple)
-    write('simple_ref.json', Limits)
-    write('simple_one_of.json', SimpleAnyOf)
-    write('one_of_ref.json', Action)
-    write('complex.json', Complex)
+if __name__ == "__main__":
+    write("simple_values.json", Simple)
+    write("simple_ref.json", Limits)
+    write("simple_one_of.json", SimpleAnyOf)
+    write("one_of_ref.json", Action)
+    write("complex.json", Complex)

@@ -4,7 +4,6 @@ from pyqtschema.widgets.base import SchemaWidgetMixin, state_property
 
 
 class CheckboxSchemaWidget(SchemaWidgetMixin, QCheckBox):
-
     @state_property
     def state(self) -> bool:
         return self.isChecked()

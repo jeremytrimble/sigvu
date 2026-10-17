@@ -9,10 +9,10 @@ class UnitValue(BaseModel):
 
 
 class Limits(BaseModel):
-    name: str = Field(default='dummy', description='stored in name-column')
+    name: str = Field(default="dummy", description="stored in name-column")
     upper: UnitValue
     lower: UnitValue
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     build_example(Limits.schema())

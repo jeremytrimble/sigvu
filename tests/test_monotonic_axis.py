@@ -1,6 +1,7 @@
-from specview.monotonic_axis import MonotonicAxis
+from sigvu.monotonic_axis import MonotonicAxis
 import pytest
 import numpy as np
+
 
 def test_monotonic_axis():
     # Test basic properties

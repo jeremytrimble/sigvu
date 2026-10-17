@@ -1897,7 +1897,7 @@ packages:
   size: 687483
   timestamp: 1745411317351
 - pypi: ./
-  name: specview
+  name: sigvu
   version: 0.1.0
   sha256: 0146207994ad334f05a74cd43b3463f7cb132988ad43fb39c11f2e2e2821a1e3
   requires_python: '>=3.11'

@@ -13,6 +13,6 @@ class UnionIssue(BaseModel):
     output: Union[str, Path] = Field(default=None)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     print(UnionIssue.schema())
     build_example(UnionIssue.schema())

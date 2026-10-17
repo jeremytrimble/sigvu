@@ -56,4 +56,4 @@ env/
 .venv/
 
 # generated version info file
-src/specview/version_info.json
+src/sigvu/version_info.json

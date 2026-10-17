@@ -1,10 +1,10 @@
-
 import datetime
 import logging
 import time
 from contextlib import contextmanager
-#import typing
-#from functools import partial
+
+# import typing
+# from functools import partial
 import typing
 
 from PyQt6.QtWidgets import QWidget
@@ -15,8 +15,10 @@ import numpy as np
 
 log = logging.getLogger("util")
 
-def unit_value_to_prefixed_units(unity_value: float, unit_base:str) -> tuple[float, str]:
 
+def unit_value_to_prefixed_units(
+    unity_value: float, unit_base: str
+) -> tuple[float, str]:
     if unity_value < 0.0:
         flip_sign = True
         unity_value = -unity_value
@@ -59,23 +61,26 @@ def unit_value_to_prefixed_units(unity_value: float, unit_base:str) -> tuple[flo
         value = -value
     return value, prefix + unit_base
 
+
 def freq_format_with_units(frequency: float) -> tuple[float, str]:
     """
     Format a frequency in Hz into a human-readable string with appropriate SI prefix.
     """
     if np.isnan(frequency):
-        return float('nan'), "Hz"
+        return float("nan"), "Hz"
     elif np.isposinf(frequency):
-        return float('inf'), "Hz"
+        return float("inf"), "Hz"
     elif np.isneginf(frequency):
-        return float('-inf'), "Hz"
+        return float("-inf"), "Hz"
 
     value, unit_str = unit_value_to_prefixed_units(frequency, "Hz")
     return value, unit_str
 
+
 def freq_format(frequency: float) -> str:
     val, units = freq_format_with_units(frequency)
     return f"{val:.3f} {units}" if val != 0.0 else "0.00 Hz"
+
 
 def duration_format(seconds: float) -> str:
     """
@@ -92,7 +97,7 @@ def duration_format(seconds: float) -> str:
     prefix = ""
     if seconds < 0:
         prefix = "-"
-        seconds = -seconds 
+        seconds = -seconds
 
     if seconds < 1.0:
         val, unit_str = unit_value_to_prefixed_units(seconds, "s")
@@ -107,16 +112,15 @@ def duration_format(seconds: float) -> str:
 
     out = prefix
     if hours > 0:
-        out+=f"{hours:d}h"
+        out += f"{hours:d}h"
     if minutes > 0:
-        out+=f"{minutes:02d}m"
-    out+=f"{seconds:06.3f}s"
+        out += f"{minutes:02d}m"
+    out += f"{seconds:06.3f}s"
     return out
 
 
-
 @contextmanager
-def measure_runtime(action:str|None, log_level:int|str=logging.INFO):
+def measure_runtime(action: str | None, log_level: int | str = logging.INFO):
     tick = time.monotonic()
     yield
     tock = time.monotonic()
@@ -124,17 +128,19 @@ def measure_runtime(action:str|None, log_level:int|str=logging.INFO):
     if action is None:
         action = "something"
 
-    delta = datetime.timedelta(seconds=tock-tick)
+    delta = datetime.timedelta(seconds=tock - tick)
     log.log(log_level, f"{action} took {delta}")
 
+
 @contextmanager
-def signals_blocked(widget:QWidget):
+def signals_blocked(widget: QWidget):
     orig = widget.signalsBlocked()
     try:
         widget.blockSignals(True)
         yield
     finally:
         widget.blockSignals(orig)
+
 
 def region_from_rectroi(roi: pg.RectROI) -> tuple[float, float]:
     pos = roi.pos()
@@ -146,17 +152,23 @@ def region_from_rectroi(roi: pg.RectROI) -> tuple[float, float]:
     bottom = top + size.y()
     return (left, top, right, bottom)
 
-#def invoke_with_signals_blocked(widget:QWidget, cb:typing.Callable, *args, **kwargs):
+
+# def invoke_with_signals_blocked(widget:QWidget, cb:typing.Callable, *args, **kwargs):
 #    with signals_blocked(widget):
 #        cb(*args, **kwargs)
 
 Ktype = typing.TypeVar("Ktype")
 Vtype = typing.TypeVar("Vtype")
-def first_from_dict(d:dict[Ktype,Vtype], return_none_on_empty:bool=True) -> Vtype|None:
+
+
+def first_from_dict(
+    d: dict[Ktype, Vtype], return_none_on_empty: bool = True
+) -> Vtype | None:
     if not d and return_none_on_empty:
         return None
     key0 = list(d.keys())[0]
     return d[key0]
+
 
 def parse_unit_prefix(value_str: str) -> tuple[float, str]:
     """Parse a string with an SI prefix into a numeric value and remaining unit string.
@@ -173,46 +185,47 @@ def parse_unit_prefix(value_str: str) -> tuple[float, str]:
     # Find where the numeric part ends
     numeric_end = 0
     for i, c in enumerate(value_str):
-        if numeric_end == 0 and c in '0123456789.-+':
+        if numeric_end == 0 and c in "0123456789.-+":
             continue
-        if c in '0123456789.eE':
+        if c in "0123456789.eE":
             continue
         numeric_end = i
         break
-    
+
     if numeric_end == 0:
         numeric_end = len(value_str)
-    
+
     try:
         number = float(value_str[:numeric_end])
     except ValueError:
         raise ValueError(f"Invalid number format: {value_str[:numeric_end]}")
-    
+
     remaining = value_str[numeric_end:]
     remaining = remaining.strip()
     if not remaining:
         return number, ""
-    
+
     # Handle SI prefixes
     prefix_map = {
-        'f': 1e-15,
-        'p': 1e-12,
-        'n': 1e-9,
-        'u': 1e-6,
-        'µ': 1e-6,  # support both forms
-        'μ': 1e-6,  # support both forms
-        'm': 1e-3,
-        'k': 1e3,
-        'M': 1e6,
-        'G': 1e9,
-        'T': 1e12
+        "f": 1e-15,
+        "p": 1e-12,
+        "n": 1e-9,
+        "u": 1e-6,
+        "µ": 1e-6,  # support both forms
+        "μ": 1e-6,  # support both forms
+        "m": 1e-3,
+        "k": 1e3,
+        "M": 1e6,
+        "G": 1e9,
+        "T": 1e12,
     }
-    
+
     if remaining[0] in prefix_map:
         multiplier = prefix_map[remaining[0]]
         return number * multiplier, remaining[1:]
-    
+
     return number, remaining
+
 
 def parse_time_str(time_str: str) -> float:
     """Parse a time string with optional SI prefix.
@@ -222,9 +235,10 @@ def parse_time_str(time_str: str) -> float:
         "1.5" -> 1.5
     """
     value, unit = parse_unit_prefix(time_str)
-    if unit and unit != 's':
+    if unit and unit != "s":
         raise ValueError(f"Invalid time unit: {unit}")
     return value
+
 
 def parse_freq_str(freq_str: str) -> float:
     """Parse a frequency string with optional SI prefix.
@@ -234,6 +248,6 @@ def parse_freq_str(freq_str: str) -> float:
         "1.5" -> 1.5
     """
     value, unit = parse_unit_prefix(freq_str)
-    if unit and unit != 'Hz':
+    if unit and unit != "Hz":
         raise ValueError(f"Invalid frequency unit: {unit}")
     return value

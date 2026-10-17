@@ -10,5 +10,5 @@ class Simple(BaseModel):
     number: float = Field(default=2.2)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     build_example(Simple.schema())

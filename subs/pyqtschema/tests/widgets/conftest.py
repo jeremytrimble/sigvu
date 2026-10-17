@@ -9,11 +9,11 @@ from pyqtschema.widgets.base import state_property
 
 
 class MockWidget(SchemaWidgetMixin, QWidget):
-    """ Mock widget """
+    """Mock widget"""
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self._value = ''
+        self._value = ""
 
     @state_property
     def state(self) -> Any:
@@ -25,7 +25,9 @@ class MockWidget(SchemaWidgetMixin, QWidget):
 
 
 class MockBuilder(IBuilder):
-    def create_widget(self, schema: dict, ui_schema: dict, state=None) -> SchemaWidgetMixin:
+    def create_widget(
+        self, schema: dict, ui_schema: dict, state=None
+    ) -> SchemaWidgetMixin:
         return MockWidget()
 
 

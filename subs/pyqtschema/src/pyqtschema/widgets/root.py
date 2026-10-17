@@ -6,7 +6,6 @@ from pyqtschema.widgets.base import SchemaWidgetMixin
 
 
 class FormWidget(QWidget):
-
     def __init__(self, widget: SchemaWidgetMixin, *args, **kwargs):
         super().__init__(*args, **kwargs)
         layout = QVBoxLayout()

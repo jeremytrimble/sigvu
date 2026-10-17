@@ -1,10 +1,10 @@
 [project]
-name = "specview"
-version = "0.3.0"
+name = "sigvu"
+version = "0.4.0"
 description = "SigMF File Viewer and Annotation Editor"
 readme = "README.md"
 license = { file = "LICENSE" }
-requires-python = ">=3.11"
+requires-python = ">=3.11,<3.15"
 authors = [
     { name = "Jeremy Trimble" },
 ]
@@ -29,7 +29,7 @@ dependencies = [
     "jsonschema>=4.24.0",
     "numpy>=2.3.1",
     "platformdirs>=4.3.8",
-    "pydantic>=2.11.7",
+    "pydantic>=2.12.5",
     "pyqt6>=6.7.0",
     "pyqtgraph>=0.13.7",
     "qtpy>=2.4.3",
@@ -38,35 +38,36 @@ dependencies = [
 ]
 
 [project.urls]
-Homepage = "https://github.com/jeremytrimble/specview"
-"Bug Tracker" = "https://github.com/jeremytrimble/specview/issues"
-Changelog = "https://github.com/jeremytrimble/specview/blob/main/CHANGELOG.md"
+Homepage = "https://github.com/jeremytrimble/sigvu"
+"Bug Tracker" = "https://github.com/jeremytrimble/sigvu/issues"
+Changelog = "https://github.com/jeremytrimble/sigvu/blob/main/CHANGELOG.md"
 
 [dependency-groups]
 build = [
     "pyinstaller>=6.16.0",
-    "specview",
+    "sigvu",
 ]
 dev = [
     "pytest>=8.4.1",
     "mypy>=1.18.2",
     "pytest-cov>=7.0.0",
-    "specview",
+    "sigvu",
     "pytest-qt>=4.5.0",
     "poethepoet>=0.31.1",
     "ruff>=0.8.4",
 ]
 
 [project.gui-scripts]
-specview = "specview.main:main"
+specview = "sigvu.main:main"    # keep old command line name for compatibility
+sigvu = "sigvu.main:main"
 
 
 [tool.uv.sources]
-specview = { workspace = true }
+sigvu = { workspace = true }
 pyqtschema = { workspace = true }
 
 [tool.pytest.ini_options]
-addopts = "--cov=src/specview --cov-report=term --cov-report=html"
+addopts = "--cov=src/sigvu --cov-report=term --cov-report=html"
 testpaths = [
     "tests"
 ]
@@ -76,7 +77,7 @@ requires = ["setuptools>=61.0"]
 build-backend = "setuptools.build_meta"
 
 [tool.setuptools.package-dir]
-specview = "src/specview"
+sigvu = "src/sigvu"
 pyqtschema = "subs/pyqtschema/src/pyqtschema"
 
 # TODO: make the build backend generate the version info for a wheel file
@@ -84,7 +85,7 @@ pyqtschema = "subs/pyqtschema/src/pyqtschema"
 [tool.poe.tasks]
 test = "pytest tests/"
 build-wheel = "uv build"
-build-pyinstaller = "pyinstaller --clean specview.spec"
+build-pyinstaller = "pyinstaller --clean sigvu.spec"
 build = ["build-wheel", "build-pyinstaller"]
 clean.script = "poethepoet.scripts:rm('dist/', 'build/')"
 format = "ruff format ."

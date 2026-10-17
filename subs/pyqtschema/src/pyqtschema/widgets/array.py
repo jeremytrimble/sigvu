@@ -2,7 +2,14 @@ from functools import partial
 from typing import List, Tuple, Optional
 
 from qtpy.QtCore import Signal
-from qtpy.QtWidgets import QWidget, QHBoxLayout, QVBoxLayout, QPushButton, QStyle, QGroupBox
+from qtpy.QtWidgets import (
+    QWidget,
+    QHBoxLayout,
+    QVBoxLayout,
+    QPushButton,
+    QStyle,
+    QGroupBox,
+)
 
 from pyqtschema.widgets.base import SchemaWidgetMixin, state_property
 from pyqtschema.widgets.utils import iter_layout_widgets, is_concrete_schema
@@ -40,7 +47,6 @@ class ArrayControlsWidget(QWidget):
 
 
 class ArrayRowWidget(QWidget):
-
     def __init__(self, widget: QWidget, controls: ArrayControlsWidget, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
@@ -55,7 +61,6 @@ class ArrayRowWidget(QWidget):
 
 
 class ArraySchemaWidget(SchemaWidgetMixin, QGroupBox):
-
     def show_title(self) -> bool:
         return False
 
@@ -85,8 +90,8 @@ class ArraySchemaWidget(SchemaWidgetMixin, QGroupBox):
         layout = QVBoxLayout()
         style = self.style()
 
-        if 'title' in self.schema:
-            self.setTitle(self.schema['title'])
+        if "title" in self.schema:
+            self.setTitle(self.schema["title"])
 
         self.add_button = QPushButton()
         self.add_button.setIcon(style.standardIcon(QStyle.SP_DialogOkButton))
@@ -123,7 +128,7 @@ class ArraySchemaWidget(SchemaWidgetMixin, QGroupBox):
             previous_row.controls.down_button.setEnabled(False)
 
     def is_fixed_schema(self, index: int) -> bool:
-        schema = self.schema['items']
+        schema = self.schema["items"]
         if isinstance(schema, dict):
             return False
 
@@ -131,7 +136,7 @@ class ArraySchemaWidget(SchemaWidgetMixin, QGroupBox):
 
     @property
     def next_item_schema(self) -> Optional[dict]:
-        item_schema = self.schema['items']
+        item_schema = self.schema["items"]
 
         if isinstance(item_schema, dict):
             return item_schema
@@ -173,7 +178,9 @@ class ArraySchemaWidget(SchemaWidgetMixin, QGroupBox):
 
         # Create widget
         item_ui_schema = self.ui_schema.get("items", {})
-        widget = self.widget_builder.create_widget(item_schema, item_ui_schema, item_state, parent=self)
+        widget = self.widget_builder.create_widget(
+            item_schema, item_ui_schema, item_state, parent=self
+        )
         controls = ArrayControlsWidget()
 
         # Create row

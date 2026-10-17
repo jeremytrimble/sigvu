@@ -1,9 +1,16 @@
 import pytest
 from qtpy.QtCore import Qt
 
-from pyqtschema.widgets import SpinSchemaWidget, SpinDoubleSchemaWidget, IntegerRangeSchemaWidget
+from pyqtschema.widgets import (
+    SpinSchemaWidget,
+    SpinDoubleSchemaWidget,
+    IntegerRangeSchemaWidget,
+)
 
-@pytest.mark.parametrize('cls', [SpinSchemaWidget, SpinDoubleSchemaWidget, IntegerRangeSchemaWidget])
+
+@pytest.mark.parametrize(
+    "cls", [SpinSchemaWidget, SpinDoubleSchemaWidget, IntegerRangeSchemaWidget]
+)
 def test_text_init(cls, builder, qtbot):
     schema = {
         "minimum": 0,
@@ -14,7 +21,9 @@ def test_text_init(cls, builder, qtbot):
     qtbot.addWidget(widget)
 
 
-@pytest.mark.parametrize('cls', [SpinSchemaWidget, SpinDoubleSchemaWidget, IntegerRangeSchemaWidget])
+@pytest.mark.parametrize(
+    "cls", [SpinSchemaWidget, SpinDoubleSchemaWidget, IntegerRangeSchemaWidget]
+)
 def test_text_state_write_int(cls, builder, qtbot):
     schema = {
         "minimum": 0,
@@ -30,7 +39,9 @@ def test_text_state_write_int(cls, builder, qtbot):
     assert widget.value() == value
 
 
-@pytest.mark.parametrize('cls', [SpinSchemaWidget, SpinDoubleSchemaWidget, IntegerRangeSchemaWidget])
+@pytest.mark.parametrize(
+    "cls", [SpinSchemaWidget, SpinDoubleSchemaWidget, IntegerRangeSchemaWidget]
+)
 def test_text_state_read_int(cls, builder, qtbot):
     schema = {
         "minimum": 0,

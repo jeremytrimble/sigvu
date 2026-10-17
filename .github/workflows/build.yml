@@ -1,4 +1,4 @@
-name: Build and Release Specview
+name: Build and Release SigVU
 
 on:
   push:
@@ -40,22 +40,22 @@ jobs:
         include:
           - os: ubuntu-22.04
             platform: linux
-            binary_src: dist/specview
+            binary_src: dist/sigvu
             binary_dst_suffix: linux
             binary_ext: ""
           - os: macos-latest
             platform: macos
-            binary_src: dist/specview
+            binary_src: dist/sigvu
             binary_dst_suffix: macos
             binary_ext: ""
           - os: windows-latest
             platform: windows
-            binary_src: dist/specview.exe
+            binary_src: dist/sigvu.exe
             binary_dst_suffix: windows
             binary_ext: ".exe"
           - os: windows-11-arm
             platform: windows-arm64
-            binary_src: dist/specview.exe
+            binary_src: dist/sigvu.exe
             binary_dst_suffix: windows-arm64
             binary_ext: ".exe"
 
@@ -89,14 +89,14 @@ jobs:
         run: |
           VERSION="${{ needs.setup.outputs.release_tag }}"
           VERSION="${VERSION#v}"  # strip leading 'v'
-          BINARY_NAME="specview-${VERSION}-${{ matrix.binary_dst_suffix }}${{ matrix.binary_ext }}"
+          BINARY_NAME="sigvu-${VERSION}-${{ matrix.binary_dst_suffix }}${{ matrix.binary_ext }}"
           mv "${{ matrix.binary_src }}" "dist/${BINARY_NAME}"
           echo "BINARY_NAME=${BINARY_NAME}" >> $GITHUB_ENV
 
       - name: Upload binary artifact
         uses: actions/upload-artifact@v4
         with:
-          name: specview-${{ matrix.platform }}
+          name: sigvu-${{ matrix.platform }}
           path: dist/${{ env.BINARY_NAME }}
 
   build-wheel:
@@ -122,7 +122,7 @@ jobs:
       - name: Upload wheel artifact
         uses: actions/upload-artifact@v4
         with:
-          name: specview-wheel
+          name: sigvu-wheel
           path: dist/*.whl
 
   release:

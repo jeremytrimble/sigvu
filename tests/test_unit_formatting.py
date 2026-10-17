@@ -1,8 +1,14 @@
-from specview.util import duration_format, freq_format, parse_unit_prefix, parse_time_str, parse_freq_str
+from sigvu.util import (
+    duration_format,
+    freq_format,
+    parse_unit_prefix,
+    parse_time_str,
+    parse_freq_str,
+)
 import pytest
 
 
-#def test_freq_format():
+# def test_freq_format():
 #    assert freq_format(1e9) == (1.0, "GHz")
 #    assert freq_format(1e6) == (1.0, "MHz")
 #    assert freq_format(1e3) == (1.0, "kHz")
@@ -14,6 +20,7 @@ import pytest
 #    assert freq_format(1e-15) == (1.0, "fHz")
 #
 #    assert freq_format(462.33e6) == (462.33, "MHz")
+
 
 def test_freq_format():
     assert freq_format(1e9) == "1.000 GHz"
@@ -34,19 +41,19 @@ def test_duration_format():
     assert duration_format(59.996) == "59.996s"
     assert duration_format(60.0) == "01m00.000s"
 
-    assert duration_format(123e-3) ==  "123.0ms"
-    assert duration_format(123e-6) ==  "123.0μs"
-    assert duration_format(123e-9) ==  "123.0ns"
+    assert duration_format(123e-3) == "123.0ms"
+    assert duration_format(123e-6) == "123.0μs"
+    assert duration_format(123e-9) == "123.0ns"
     assert duration_format(123e-12) == "123.0ps"
 
     assert duration_format(-123e-12) == "-123.0ps"
 
     assert duration_format(999e-3) == "999.0ms"
 
-    assert duration_format( 59*60 + 59.999) == "59m59.999s"
-    assert duration_format( -(59*60 + 59.999)) == "-59m59.999s"
+    assert duration_format(59 * 60 + 59.999) == "59m59.999s"
+    assert duration_format(-(59 * 60 + 59.999)) == "-59m59.999s"
 
-    assert duration_format( 1*3600 + 2*60 + 3.456) == "1h02m03.456s"
+    assert duration_format(1 * 3600 + 2 * 60 + 3.456) == "1h02m03.456s"
 
 
 def test_parse_unit_prefix():
@@ -55,7 +62,7 @@ def test_parse_unit_prefix():
     assert parse_unit_prefix("-1.5") == (-1.5, "")
     assert parse_unit_prefix("1e6") == (1e6, "")
     assert parse_unit_prefix("-1.5e-6") == (-1.5e-6, "")
-    
+
     # SI prefixes without units
     assert parse_unit_prefix("1.5k") == (1500.0, "")
     assert parse_unit_prefix("-1.5k") == (-1500.0, "")
@@ -69,17 +76,17 @@ def test_parse_unit_prefix():
     assert parse_unit_prefix("1.5n") == (pytest.approx(1.5e-9), "")
     assert parse_unit_prefix("1.5p") == (pytest.approx(1.5e-12), "")
     assert parse_unit_prefix("1.5f") == (pytest.approx(1.5e-15), "")
-    
+
     # SI prefixes with units
     assert parse_unit_prefix("1.5kHz") == (1500.0, "Hz")
     assert parse_unit_prefix("1.5MHz") == (1.5e6, "Hz")
     assert parse_unit_prefix("1.5ms") == (1.5e-3, "s")
-    
+
     # Edge cases
     assert parse_unit_prefix("0") == (0.0, "")
     assert parse_unit_prefix("-0") == (0.0, "")
     assert parse_unit_prefix("1.5 MHz") == (1.5e6, "Hz")  # space handling
-    
+
     # Error cases
     with pytest.raises(ValueError):
         parse_unit_prefix("")
@@ -93,7 +100,7 @@ def test_parse_time_str():
     assert parse_time_str("1.5") == 1.5
     assert parse_time_str("1.5s") == 1.5
     assert parse_time_str("-1.5s") == -1.5
-    
+
     # SI prefixes
     assert parse_time_str("1.5ms") == 1.5e-3
     assert parse_time_str("1.5µs") == 1.5e-6
@@ -102,11 +109,11 @@ def test_parse_time_str():
     assert parse_time_str("1.5ns") == pytest.approx(1.5e-9)
     assert parse_time_str("1.5ps") == pytest.approx(1.5e-12)
     assert parse_time_str("1.5fs") == pytest.approx(1.5e-15)
-    
+
     # Scientific notation
     assert parse_time_str("1.5e-3s") == 1.5e-3
     assert parse_time_str("-1.5e-3s") == -1.5e-3
-    
+
     # Error cases
     with pytest.raises(ValueError):
         parse_time_str("1.5min")  # invalid unit
@@ -121,7 +128,7 @@ def test_parse_freq_str():
     assert parse_freq_str("1.5") == 1.5
     assert parse_freq_str("1.5Hz") == 1.5
     assert parse_freq_str("-1.5Hz") == -1.5
-    
+
     # SI prefixes
     assert parse_freq_str("1.5kHz") == 1.5e3
     assert parse_freq_str("1.5MHz") == 1.5e6
@@ -134,11 +141,11 @@ def test_parse_freq_str():
     assert parse_freq_str("1.5nHz") == pytest.approx(1.5e-9)
     assert parse_freq_str("1.5pHz") == pytest.approx(1.5e-12)
     assert parse_freq_str("1.5fHz") == pytest.approx(1.5e-15)
-    
+
     # Scientific notation
     assert parse_freq_str("1.5e6Hz") == 1.5e6
     assert parse_freq_str("-1.5e6Hz") == -1.5e6
-    
+
     # Error cases
     with pytest.raises(ValueError):
         parse_freq_str("1.5khz")  # wrong case

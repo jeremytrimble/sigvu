@@ -1,7 +1,8 @@
 import numpy as np
 
+
 class MonotonicAxis:
-    def __init__(self, slope:float, num_points:int, intercept:float=0.0):
+    def __init__(self, slope: float, num_points: int, intercept: float = 0.0):
         assert slope > 0.0
         self._slope = slope
         self._intercept = intercept
@@ -17,17 +18,19 @@ class MonotonicAxis:
 
     @property
     def max(self) -> float:
-        return (self._num_points-1) * self._slope + self._intercept
+        return (self._num_points - 1) * self._slope + self._intercept
 
-    def value_at_idx(self, idx:int) -> float:
+    def value_at_idx(self, idx: int) -> float:
         if idx < 0 or idx >= self._num_points:
-            raise ValueError(f"{idx=} is out of range for MonotonicAxis with {self._num_points} points")
+            raise ValueError(
+                f"{idx=} is out of range for MonotonicAxis with {self._num_points} points"
+            )
         return idx * self._slope + self._intercept
 
-    def value_at_idx_extrapolated(self, idx:int) -> float:
+    def value_at_idx_extrapolated(self, idx: int) -> float:
         return idx * self._slope + self._intercept
 
-    def idx_nearest_to_value(self, value:float) -> int:
+    def idx_nearest_to_value(self, value: float) -> int:
         idx = int(round((value - self._intercept) / self._slope))
         if idx < 0:
             return 0

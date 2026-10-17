@@ -3,15 +3,30 @@ from functools import partial
 from typing import Tuple, Dict
 
 from qtpy.QtCore import Qt
-from qtpy.QtWidgets import QGroupBox, QWidget, QGridLayout, QLabel, QVBoxLayout, QComboBox, QHBoxLayout, QSizePolicy
+from qtpy.QtWidgets import (
+    QGroupBox,
+    QWidget,
+    QGridLayout,
+    QLabel,
+    QVBoxLayout,
+    QComboBox,
+    QHBoxLayout,
+    QSizePolicy,
+)
 
 from pyqtschema.widgets.base import SchemaWidgetMixin, state_property
 from pyqtschema.widgets.utils import iter_layout_widgets
 
 
 class ObjectSchemaWidget(SchemaWidgetMixin, QGroupBox):
-
-    def __init__(self, schema: dict, ui_schema: dict, widget_builder: 'WidgetBuilder', *args, **kwargs):
+    def __init__(
+        self,
+        schema: dict,
+        ui_schema: dict,
+        widget_builder: "WidgetBuilder",
+        *args,
+        **kwargs,
+    ):
         super().__init__(schema, ui_schema, widget_builder, *args, **kwargs)
 
         self.widgets = self.populate_from_schema(schema, ui_schema, widget_builder)
@@ -33,8 +48,9 @@ class ObjectSchemaWidget(SchemaWidgetMixin, QGroupBox):
         self.state[name] = value
         self.on_changed.emit(self.state)
 
-    def populate_from_schema(self, schema: dict, ui_schema: dict, widget_builder: 'WidgetBuilder'
-                             ) -> Dict[str, QWidget]:
+    def populate_from_schema(
+        self, schema: dict, ui_schema: dict, widget_builder: "WidgetBuilder"
+    ) -> Dict[str, QWidget]:
         # layout = QFormLayout()
         layout = QGridLayout()
 
@@ -42,23 +58,25 @@ class ObjectSchemaWidget(SchemaWidgetMixin, QGroupBox):
         layout.setAlignment(Qt.AlignTop)
         self.setFlat(False)
 
-        if 'title' in schema:
-            self.setTitle(schema['title'])
+        if "title" in schema:
+            self.setTitle(schema["title"])
 
-        if 'description' in schema:
-            self.setToolTip(schema['description'])
+        if "description" in schema:
+            self.setToolTip(schema["description"])
 
         # Populate rows
         widgets = {}
 
-        for name, sub_schema in schema['properties'].items():
+        for name, sub_schema in schema["properties"].items():
             sub_ui_schema = ui_schema.get(name, {})
 
-            _hide = sub_ui_schema.get('ui:hidden', False)
-            _disable = sub_ui_schema.get('ui:disabled', False)
-            _show_title = sub_ui_schema.get('ui:show_title', True)
+            _hide = sub_ui_schema.get("ui:hidden", False)
+            _disable = sub_ui_schema.get("ui:disabled", False)
+            _show_title = sub_ui_schema.get("ui:show_title", True)
 
-            widget = widget_builder.create_widget(sub_schema, sub_ui_schema, parent=self)  # TODO onchanged
+            widget = widget_builder.create_widget(
+                sub_schema, sub_ui_schema, parent=self
+            )  # TODO onchanged
             widget.on_changed.connect(partial(self.widget_on_changed, name))
             widget.setHidden(_hide)
             widget.setDisabled(_disable)

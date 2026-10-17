@@ -11,6 +11,7 @@ from PyQt6.QtCore import Qt
 from PyQt6.QtGui import QTextCharFormat, QColor, QSyntaxHighlighter, QTextDocument
 import json
 
+
 class JSONSyntaxHighlighter(QSyntaxHighlighter):
     """Syntax highlighter for JSON errors."""
 
@@ -18,11 +19,13 @@ class JSONSyntaxHighlighter(QSyntaxHighlighter):
         super().__init__(parent)
         self.error_pos: Optional[int] = None
         self.error_length: int = 0
-        
+
         # Create error format
         self.error_format = QTextCharFormat()
         self.error_format.setUnderlineColor(QColor("red"))
-        self.error_format.setUnderlineStyle(QTextCharFormat.UnderlineStyle.WaveUnderline)
+        self.error_format.setUnderlineStyle(
+            QTextCharFormat.UnderlineStyle.WaveUnderline
+        )
 
     def set_error(self, pos: int, length: int) -> None:
         """Set the position and length of the error to highlight."""
@@ -44,7 +47,7 @@ class JSONSyntaxHighlighter(QSyntaxHighlighter):
         block_pos = self.currentBlock().position()
         block_length = len(text)
         error_start = self.error_pos - block_pos
-        
+
         # Check if the error is in this block
         if 0 <= error_start < block_length:
             error_end = min(error_start + self.error_length, block_length)
@@ -60,7 +63,7 @@ class JSONEditorDialog(QDialog):
         parent: Optional[QWidget] = None,
         json_data: Optional[Any] = None,
         read_only: bool = True,
-        title: str = "JSON Editor"
+        title: str = "JSON Editor",
     ) -> None:
         """Initialize the JSON editor dialog.
 
@@ -102,7 +105,10 @@ class JSONEditorDialog(QDialog):
         if read_only:
             self.button_box.setStandardButtons(QDialogButtonBox.StandardButton.Close)
         else:
-            self.button_box.setStandardButtons(QDialogButtonBox.StandardButton.Ok | QDialogButtonBox.StandardButton.Cancel)
+            self.button_box.setStandardButtons(
+                QDialogButtonBox.StandardButton.Ok
+                | QDialogButtonBox.StandardButton.Cancel
+            )
 
         self.button_box.accepted.connect(self.accept)
         self.button_box.rejected.connect(self.reject)
@@ -111,8 +117,6 @@ class JSONEditorDialog(QDialog):
         # Set the JSON content if provided
         if json_data is not None:
             self.set_json(json_data)
-
-
 
     def set_json(self, data: Any) -> None:
         """Set the JSON content in the editor with nice formatting.
@@ -130,7 +134,7 @@ class JSONEditorDialog(QDialog):
         """Validate the current JSON content and update error display."""
 
         if self._validation_in_progress:
-            return  # Prevent re-entrancy   
+            return  # Prevent re-entrancy
 
         self._validation_in_progress = True
 
@@ -147,7 +151,9 @@ class JSONEditorDialog(QDialog):
             # Show error message and highlight the error position
             self.error_label.setText(f"JSON Error: {str(e)}")
             self.error_label.show()
-            self.highlighter.set_error(e.pos, 1)  # Highlight the character at error position
+            self.highlighter.set_error(
+                e.pos, 1
+            )  # Highlight the character at error position
             ok_button = self.button_box.button(QDialogButtonBox.Ok)
             if ok_button:
                 ok_button.setEnabled(False)

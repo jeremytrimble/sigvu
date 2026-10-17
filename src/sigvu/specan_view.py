@@ -4,7 +4,7 @@ import numpy as np
 import numpy.typing as npt
 import pyqtgraph as pg
 
-from specview.monotonic_axis import MonotonicAxis
+from sigvu.monotonic_axis import MonotonicAxis
 
 from .ui_constants import INTERVAL_ROI_COLOR
 from .roi_select_viewboxes import IntervalSelectViewBox
@@ -16,12 +16,14 @@ from .util import freq_format
 
 from .chunkwise_compute import (
     FrequencyDomainChunkwiseComputedArray,
-    FrequencyDomainComputationSpec
+    FrequencyDomainComputationSpec,
 )
 
 import logging
+
 log = logging.getLogger(__name__)
 import threading
+
 
 class SpecanView(QWidget):
     def __init__(self, *args, **kwargs):
@@ -30,14 +32,16 @@ class SpecanView(QWidget):
         # TODO: make MHz ticks display more nicely
         myvb = IntervalSelectViewBox()
 
-        self._selected_capture_id: CaptureID|None = None
+        self._selected_capture_id: CaptureID | None = None
         self._chunk_holder = ChunkHolder()
-        self._chunk_holder.held_data_updated.connect( self._redisplay )
-        self._chunk_holder.averaged_trace_ready.connect( self._on_averaged_trace_ready )
+        self._chunk_holder.held_data_updated.connect(self._redisplay)
+        self._chunk_holder.averaged_trace_ready.connect(self._on_averaged_trace_ready)
 
-        self._freq_plot = pg.PlotWidget(labels={'left': 'PSD', 'bottom': 'Frequency [Hz]'}, viewBox=myvb)
+        self._freq_plot = pg.PlotWidget(
+            labels={"left": "PSD", "bottom": "Frequency [Hz]"}, viewBox=myvb
+        )
         self._freq_plot.setMouseEnabled(x=True, y=True)
-        self._freq_plot_curve = self._freq_plot.plot([]) 
+        self._freq_plot_curve = self._freq_plot.plot([])
 
         self._freq_crosshair_x = pg.InfiniteLine(angle=90, movable=False)
 
@@ -51,25 +55,34 @@ class SpecanView(QWidget):
 
         self._cursor_time_relto_capture = 0.0
 
-        self._time_interval: tuple[float,float]|None = None
-        self._freq_interval: tuple[float,float]|None = None
+        self._time_interval: tuple[float, float] | None = None
+        self._freq_interval: tuple[float, float] | None = None
 
-        roiPen = pg.mkPen( pg.mkColor(INTERVAL_ROI_COLOR), width=3)
-        self._interval_roi = LabeledLinearRegionItem( values=(0,1), orientation="vertical", pen=roiPen, label_fill_color=(0, 0, 255, 128))
+        roiPen = pg.mkPen(pg.mkColor(INTERVAL_ROI_COLOR), width=3)
+        self._interval_roi = LabeledLinearRegionItem(
+            values=(0, 1),
+            orientation="vertical",
+            pen=roiPen,
+            label_fill_color=(0, 0, 255, 128),
+        )
         self._interval_roi.setVisible(False)
         self._freq_plot.addItem(self._interval_roi, ignoreBounds=True)
 
         myvb.set_plot_and_interval(self._freq_plot, self._interval_roi)
-        myvb.set_interval_change_callback( self._freq_interval_set_from_specan )
+        myvb.set_interval_change_callback(self._freq_interval_set_from_specan)
 
         # make sure the interval ROI is updated when the user drags it (in addition to during initial creation with shift-drag)
-        self._interval_roi.sigRegionChanged.connect( lambda: self._freq_interval_set_from_specan(self._interval_roi.getRegion()) )
-        self._interval_roi.sigRegionChanged.connect( self._update_freq_interval_roi_label )
+        self._interval_roi.sigRegionChanged.connect(
+            lambda: self._freq_interval_set_from_specan(self._interval_roi.getRegion())
+        )
+        self._interval_roi.sigRegionChanged.connect(
+            self._update_freq_interval_roi_label
+        )
 
         # Initialize the annotation ROI manager for linear ROIs in frequency domain
         def roi_factory(**kwargs):
             return LabeledLinearRegionItem(orientation="vertical", pen=roiPen, **kwargs)
-        
+
         self._annotation_manager = AnnotationROIManager(
             plot_widget=self._freq_plot,
             roi_dimensions=ROIDimensions.FREQUENCY,
@@ -84,8 +97,12 @@ class SpecanView(QWidget):
         app_state = self._get_app_state()
         app_state.cursor_frequency_changed.connect(self._on_freq_cursor_changed)
         app_state.cursor_time_changed.connect(self._on_time_cursor_changed)
-        app_state.time_interval_changed.connect(self._on_time_interval_changed_from_outside)
-        app_state.frequency_interval_changed.connect(self._on_freq_interval_changed_from_outside)
+        app_state.time_interval_changed.connect(
+            self._on_time_interval_changed_from_outside
+        )
+        app_state.frequency_interval_changed.connect(
+            self._on_freq_interval_changed_from_outside
+        )
         app_state.selected_capture_changed.connect(self._on_selected_capture_changed)
         app_state.annotation_changed.connect(self._on_annotation_changed)
         app_state.fft_config_changed.connect(self._on_fft_config_changed)
@@ -99,30 +116,32 @@ class SpecanView(QWidget):
         self._chunk_holder.clear_saved_data()
         self._redisplay()
 
-    def _on_annotation_changed(self, annotation_id: AnnotationID, action: LoadedDictAction):
+    def _on_annotation_changed(
+        self, annotation_id: AnnotationID, action: LoadedDictAction
+    ):
         self._annotation_manager.on_annotation_changed(annotation_id, action)
 
-    def _freq_interval_set_from_specan(self, freq_interval: tuple[float,float]|None):
+    def _freq_interval_set_from_specan(self, freq_interval: tuple[float, float] | None):
         self._get_app_state().set_frequency_interval(freq_interval)
-    
+
     def _update_freq_interval_roi_label(self):
         """Update the interval ROI label with frequency information."""
         if self._selected_capture_id is None:
             return
-        
+
         region = self._interval_roi.getRegion()
         freq_lo_Hz, freq_hi_Hz = region
         bandwidth_Hz = freq_hi_Hz - freq_lo_Hz
         center_freq_Hz = (freq_lo_Hz + freq_hi_Hz) / 2.0
-        
+
         app_state = self._get_app_state()
         capture = app_state.get_capture_by_id(self._selected_capture_id)
         if capture is None:
             return
-        
+
         # Get the capture's center frequency
         capture_center_freq_Hz = capture.center_freq_Hz
-        
+
         # Calculate relative frequency (for complex signals, this can be positive or negative)
         relative_freq_Hz = center_freq_Hz - capture_center_freq_Hz
 
@@ -132,20 +151,24 @@ class SpecanView(QWidget):
             f"Center: {freq_format(center_freq_Hz)}",
             f"Upper: {freq_format(freq_hi_Hz)}",
             f"Bandwidth: {freq_format(bandwidth_Hz)}",
-            f"Rel. to center: {freq_format(relative_freq_Hz)}"
+            f"Rel. to center: {freq_format(relative_freq_Hz)}",
         ]
-        
+
         label_text = "\n".join(label_lines)
         self._interval_roi.setLabel(label_text)
 
-    def _on_freq_interval_changed_from_outside(self, freq_interval: tuple[float,float]|None):
+    def _on_freq_interval_changed_from_outside(
+        self, freq_interval: tuple[float, float] | None
+    ):
         self._freq_interval = freq_interval
         self._interval_roi.setVisible(self._freq_interval is not None)
         if self._freq_interval is not None:
             self._interval_roi.setRegion(self._freq_interval)
             self._update_freq_interval_roi_label()
 
-    def _on_time_interval_changed_from_outside(self, time_interval: tuple[float,float]|None):
+    def _on_time_interval_changed_from_outside(
+        self, time_interval: tuple[float, float] | None
+    ):
         self._time_interval = time_interval
         self._redisplay()
 
@@ -164,20 +187,21 @@ class SpecanView(QWidget):
             mousePoint = self._freq_plot.getViewBox().mapSceneToView(pos)
             freq_Hz = mousePoint.x()
             magnitude_dB = mousePoint.y()
-            self._freq_crosshair_x.setPos( freq_Hz )
+            self._freq_crosshair_x.setPos(freq_Hz)
 
             self._get_app_state().set_cursor_frequency(freq_Hz)
-    
+
     def _on_averaged_trace_ready(self, trace: npt.NDArray, freq_axis: MonotonicAxis):
         """Called when background averaging completes. Trigger a redisplay."""
         self._redisplay()
 
     def _redisplay(self):
-
         if self._selected_capture_id is None:
             return
 
-        capture:LoadedCaptureDict = self._get_app_state().get_capture_by_id(self._selected_capture_id)
+        capture: LoadedCaptureDict = self._get_app_state().get_capture_by_id(
+            self._selected_capture_id
+        )
         if capture is None:
             return
 
@@ -202,7 +226,7 @@ class SpecanView(QWidget):
 
             arr, freq_axis = rv
 
-            trace = arr[0,:]
+            trace = arr[0, :]
         else:
             t_lo_sec, t_hi_sec = self._time_interval
 
@@ -218,10 +242,10 @@ class SpecanView(QWidget):
             trace, freq_axis = rv
 
         self._freq_plot_curve.setData(
-            x = freq_axis.array,
-            y = trace,
+            x=freq_axis.array,
+            y=trace,
         )
-        #self._freq_plot.setAspectLocked(False)
+        # self._freq_plot.setAspectLocked(False)
 
         MIN_dB = -180
         MAX_dB = 170
@@ -243,20 +267,22 @@ class SpecanView(QWidget):
 
 
 class ChunkHolder(QObject):
-
     held_data_updated = pyqtSignal()
-    averaged_trace_ready = pyqtSignal(object, object, name="averaged_trace_ready")  # (trace, freq_axis)
+    averaged_trace_ready = pyqtSignal(
+        object, object, name="averaged_trace_ready"
+    )  # (trace, freq_axis)
 
     """
     Caches a chunk of data from a ChunkwiseComputedArray to avoid repeated reads when the user is scrolling nearby.
     """
+
     def __init__(self):
         super().__init__()
         self._frame_margin = 1000
 
         self._array: npt.NDArray | None = None
         self._array_channel: int | None = None
-        self._array_capture_id: CaptureID|None = None
+        self._array_capture_id: CaptureID | None = None
         self._array_start_time_relto_capture: float = 0.0
         self._array_delta_t_per_frame: float = 0.0
         self._array_freq_axis_Hz: MonotonicAxis | None = None
@@ -268,37 +294,66 @@ class ChunkHolder(QObject):
 
         self._data_update_in_progress: SpecanViewUpdaterWorker | None = None
         self._averaging_in_progress: SpecanAveragingWorker | None = None
-    
+
     def clear_saved_data(self):
         self._array = None
         self._averaged_trace = None
 
-    def get_data_for(self, capture_id: CaptureID, channel:int, time_relto_capture:float, duration_sec:float|None=None) -> tuple[npt.NDArray, MonotonicAxis]|None:
-
+    def get_data_for(
+        self,
+        capture_id: CaptureID,
+        channel: int,
+        time_relto_capture: float,
+        duration_sec: float | None = None,
+    ) -> tuple[npt.NDArray, MonotonicAxis] | None:
         if duration_sec is not None and duration_sec <= 0:
             raise ValueError("duration_sec must be positive or None")
 
-        if self._array is not None and self._array_capture_id == capture_id and self._array_channel == channel:
+        if (
+            self._array is not None
+            and self._array_capture_id == capture_id
+            and self._array_channel == channel
+        ):
             num_frames, _ = self._array.shape
 
-            array_end_time_relto_capture = self._array_start_time_relto_capture + (num_frames-1)*self._array_delta_t_per_frame
+            array_end_time_relto_capture = (
+                self._array_start_time_relto_capture
+                + (num_frames - 1) * self._array_delta_t_per_frame
+            )
 
             start_frame_idx = None
             if duration_sec is None:
-                if time_relto_capture >= self._array_start_time_relto_capture and time_relto_capture < array_end_time_relto_capture:
+                if (
+                    time_relto_capture >= self._array_start_time_relto_capture
+                    and time_relto_capture < array_end_time_relto_capture
+                ):
                     # already have the data we need
-                    start_frame_idx = int( (time_relto_capture - self._array_start_time_relto_capture)/self._array_delta_t_per_frame )
+                    start_frame_idx = int(
+                        (time_relto_capture - self._array_start_time_relto_capture)
+                        / self._array_delta_t_per_frame
+                    )
                     end_frame_idx = start_frame_idx + 1
-            else: # duration_sec is not None
-                if time_relto_capture >= self._array_start_time_relto_capture and (time_relto_capture + duration_sec) < array_end_time_relto_capture:
+            else:  # duration_sec is not None
+                if (
+                    time_relto_capture >= self._array_start_time_relto_capture
+                    and (time_relto_capture + duration_sec)
+                    < array_end_time_relto_capture
+                ):
                     # already have the data we need
-                    start_frame_idx = int( (time_relto_capture - self._array_start_time_relto_capture)/self._array_delta_t_per_frame )
-                    num_frames_needed = int(duration_sec/self._array_delta_t_per_frame) + 1
+                    start_frame_idx = int(
+                        (time_relto_capture - self._array_start_time_relto_capture)
+                        / self._array_delta_t_per_frame
+                    )
+                    num_frames_needed = (
+                        int(duration_sec / self._array_delta_t_per_frame) + 1
+                    )
                     end_frame_idx = start_frame_idx + num_frames_needed
                     del num_frames_needed
 
             if start_frame_idx is not None:
-                return self._array[start_frame_idx:end_frame_idx, :], self._array_freq_axis_Hz
+                return self._array[
+                    start_frame_idx:end_frame_idx, :
+                ], self._array_freq_axis_Hz
 
         # if we got here, we need to load new data
         # before returning None, we'll fire off a background load of the data we need
@@ -309,22 +364,44 @@ class ChunkHolder(QObject):
             self._data_update_in_progress = None
 
         app_state = QApplication.instance().app_state
-        capture :LoadedCaptureDict = app_state.get_capture_by_id(capture_id)
+        capture: LoadedCaptureDict = app_state.get_capture_by_id(capture_id)
         if capture is None:
-            return None 
+            return None
         loaded_file = capture.parent_loadedfile
         sample_rate_Hz = loaded_file.sample_rate_Hz
-        cca = loaded_file.get_freq_chunkwise_computed_array(selected_channel=channel, comp_spec=app_state.get_fft_config())
+        cca = loaded_file.get_freq_chunkwise_computed_array(
+            selected_channel=channel, comp_spec=app_state.get_fft_config()
+        )
 
-        capture_start_time_sec_relto_file = capture.start_sample_idx/sample_rate_Hz
-        data_start_time_sec_relto_file = (capture_start_time_sec_relto_file + time_relto_capture - self._frame_margin * cca.delta_t_per_frame )
-        data_end_time_sec_relto_file = (capture_start_time_sec_relto_file + (time_relto_capture+duration_sec if duration_sec is not None else time_relto_capture) + self._frame_margin * cca.delta_t_per_frame )
+        capture_start_time_sec_relto_file = capture.start_sample_idx / sample_rate_Hz
+        data_start_time_sec_relto_file = (
+            capture_start_time_sec_relto_file
+            + time_relto_capture
+            - self._frame_margin * cca.delta_t_per_frame
+        )
+        data_end_time_sec_relto_file = (
+            capture_start_time_sec_relto_file
+            + (
+                time_relto_capture + duration_sec
+                if duration_sec is not None
+                else time_relto_capture
+            )
+            + self._frame_margin * cca.delta_t_per_frame
+        )
 
-        start_idx_relto_file = cca.time_axis.idx_nearest_to_value(data_start_time_sec_relto_file)
-        end_idx_relto_file = cca.time_axis.idx_nearest_to_value(data_end_time_sec_relto_file)   
+        start_idx_relto_file = cca.time_axis.idx_nearest_to_value(
+            data_start_time_sec_relto_file
+        )
+        end_idx_relto_file = cca.time_axis.idx_nearest_to_value(
+            data_end_time_sec_relto_file
+        )
 
-        true_start_time_sec_relto_file = cca.time_axis.value_at_idx(start_idx_relto_file)
-        true_start_time_sec_relto_capture = true_start_time_sec_relto_file - capture_start_time_sec_relto_file
+        true_start_time_sec_relto_file = cca.time_axis.value_at_idx(
+            start_idx_relto_file
+        )
+        true_start_time_sec_relto_capture = (
+            true_start_time_sec_relto_file - capture_start_time_sec_relto_file
+        )
 
         runnable = SpecanViewUpdaterWorker(
             cca=cca,
@@ -336,10 +413,18 @@ class ChunkHolder(QObject):
             center_freq_Hz=capture.center_freq_Hz,
         )
         self._data_update_in_progress = runnable
-        runnable.signals.update_data_signal.connect( self._update_held_data )
+        runnable.signals.update_data_signal.connect(self._update_held_data)
         QApplication.instance().thread_pool.start(runnable)
 
-    def _update_held_data(self, array_data: npt.NDArray, start_time_sec_relto_capture: float, channel:int, capture_id:CaptureID, delta_t_per_frame:float, freq_axis_Hz:MonotonicAxis):
+    def _update_held_data(
+        self,
+        array_data: npt.NDArray,
+        start_time_sec_relto_capture: float,
+        channel: int,
+        capture_id: CaptureID,
+        delta_t_per_frame: float,
+        freq_axis_Hz: MonotonicAxis,
+    ):
         self._array = array_data
         self._array_start_time_relto_capture = start_time_sec_relto_capture
         self._array_channel = channel
@@ -351,17 +436,21 @@ class ChunkHolder(QObject):
 
         self.held_data_updated.emit()
 
-    def get_averaged_trace_for(self, capture_id: CaptureID, channel: int, time_interval: tuple[float, float]) -> tuple[npt.NDArray, MonotonicAxis] | None:
+    def get_averaged_trace_for(
+        self, capture_id: CaptureID, channel: int, time_interval: tuple[float, float]
+    ) -> tuple[npt.NDArray, MonotonicAxis] | None:
         """Get an averaged trace over a time interval. Returns cached result or starts background computation."""
         t_lo, t_hi = time_interval
-        
+
         # Check if we have a cached averaged trace for this exact request
-        if (self._averaged_trace is not None and 
-            self._averaged_trace_capture_id == capture_id and 
-            self._averaged_trace_channel == channel and
-            self._averaged_trace_time_interval == time_interval):
+        if (
+            self._averaged_trace is not None
+            and self._averaged_trace_capture_id == capture_id
+            and self._averaged_trace_channel == channel
+            and self._averaged_trace_time_interval == time_interval
+        ):
             return self._averaged_trace, self._array_freq_axis_Hz
-        
+
         # Need to compute the average. First, get the raw data.
         duration_sec = t_hi - t_lo
         if duration_sec <= 0:
@@ -370,23 +459,32 @@ class ChunkHolder(QObject):
         if rv is None:
             # Raw data not available yet, background load in progress
             return None
-        
+
         arr, freq_axis = rv
-        
+
         # Check if we already have an averaging worker running
         if self._averaging_in_progress is not None:
             self._averaging_in_progress.canceled.set()
             self._averaging_in_progress = None
-        
+
         # Start background averaging
-        worker = SpecanAveragingWorker(arr, freq_axis, capture_id, channel, time_interval)
+        worker = SpecanAveragingWorker(
+            arr, freq_axis, capture_id, channel, time_interval
+        )
         self._averaging_in_progress = worker
         worker.signals.averaged_trace_ready.connect(self._on_averaged_trace_ready)
         QApplication.instance().thread_pool.start(worker)
-        
+
         return None
-    
-    def _on_averaged_trace_ready(self, trace: npt.NDArray, freq_axis: MonotonicAxis, capture_id: CaptureID, channel: int, time_interval: tuple[float, float]):
+
+    def _on_averaged_trace_ready(
+        self,
+        trace: npt.NDArray,
+        freq_axis: MonotonicAxis,
+        capture_id: CaptureID,
+        channel: int,
+        time_interval: tuple[float, float],
+    ):
         """Handle completion of background averaging."""
         self._averaged_trace = trace
         self._averaged_trace_capture_id = capture_id
@@ -396,21 +494,24 @@ class ChunkHolder(QObject):
 
         self.averaged_trace_ready.emit(trace, freq_axis)
 
+
 class SpecanViewUpdaterSignals(QObject):
-    update_data_signal = pyqtSignal((
-        np.ndarray, float, int, CaptureID, float, MonotonicAxis
-    ))
+    update_data_signal = pyqtSignal(
+        (np.ndarray, float, int, CaptureID, float, MonotonicAxis)
+    )
+
 
 class SpecanViewUpdaterWorker(QRunnable):
-    def __init__(self, 
-            cca: FrequencyDomainChunkwiseComputedArray,
-            start_idx_relto_file: int,
-            end_idx_relto_file: int,
-            true_start_time_sec_relto_capture: float,
-            channel: int,
-            capture_id: CaptureID,
-            center_freq_Hz: float,
-        ):
+    def __init__(
+        self,
+        cca: FrequencyDomainChunkwiseComputedArray,
+        start_idx_relto_file: int,
+        end_idx_relto_file: int,
+        true_start_time_sec_relto_capture: float,
+        channel: int,
+        capture_id: CaptureID,
+        center_freq_Hz: float,
+    ):
         super().__init__()
 
         self._cca = cca
@@ -427,33 +528,51 @@ class SpecanViewUpdaterWorker(QRunnable):
     def run(self):
         try:
             array_data = self._cca.get_range_blocking(
-                self._start_idx_relto_file,
-                self._end_idx_relto_file
+                self._start_idx_relto_file, self._end_idx_relto_file
             )
 
             if not self.canceled.is_set():
-                self.signals.update_data_signal.emit( 
-                    array_data, self._true_start_time_sec_relto_capture, self._channel, self._capture_id, self._cca.delta_t_per_frame, self._cca.get_freq_axis_assuming_center_frequency(self._center_freq_Hz)
+                self.signals.update_data_signal.emit(
+                    array_data,
+                    self._true_start_time_sec_relto_capture,
+                    self._channel,
+                    self._capture_id,
+                    self._cca.delta_t_per_frame,
+                    self._cca.get_freq_axis_assuming_center_frequency(
+                        self._center_freq_Hz
+                    ),
                 )
         except:
             log.exception("Error in SpecanViewUpdaterWorker")
 
+
 class SpecanAveragingSignals(QObject):
-    averaged_trace_ready = pyqtSignal(object,object, str, int, tuple, name="averaged_trace_ready")  # (trace, freq_axis, capture_id, channel, time_interval)
+    averaged_trace_ready = pyqtSignal(
+        object, object, str, int, tuple, name="averaged_trace_ready"
+    )  # (trace, freq_axis, capture_id, channel, time_interval)
+
 
 class SpecanAveragingWorker(QRunnable):
     """Background worker to compute time-averaged spectrum trace."""
-    def __init__(self, array_data: npt.NDArray, freq_axis: MonotonicAxis, capture_id: CaptureID, channel: int, time_interval: tuple[float, float]):
+
+    def __init__(
+        self,
+        array_data: npt.NDArray,
+        freq_axis: MonotonicAxis,
+        capture_id: CaptureID,
+        channel: int,
+        time_interval: tuple[float, float],
+    ):
         super().__init__()
         self._array_data = array_data
         self._freq_axis = freq_axis
         self._capture_id = capture_id
         self._channel = channel
         self._time_interval = time_interval
-        
+
         self.signals = SpecanAveragingSignals()
         self.canceled = threading.Event()
-    
+
     def run(self):
         try:
             # Perform the averaging computation in the background thread
@@ -462,10 +581,14 @@ class SpecanAveragingWorker(QRunnable):
             arr = np.power(10, (self._array_data / 20.0))
             trace = arr.mean(axis=0)
             trace = 20 * np.log10(trace)
-            
+
             if not self.canceled.is_set():
                 self.signals.averaged_trace_ready.emit(
-                    trace, self._freq_axis, self._capture_id, self._channel, self._time_interval
+                    trace,
+                    self._freq_axis,
+                    self._capture_id,
+                    self._channel,
+                    self._time_interval,
                 )
         except:
             log.exception("Error in SpecanAveragingWorker")
