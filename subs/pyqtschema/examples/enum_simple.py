@@ -6,9 +6,9 @@ from pyqtschema import build_example
 
 
 class Units(Enum):
-    none = '1'
-    meter = 'm'
-    seconds = 's'
+    none = "1"
+    meter = "m"
+    seconds = "s"
 
 
 class UnitValue(BaseModel):
@@ -16,5 +16,5 @@ class UnitValue(BaseModel):
     unit: Units
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     build_example(UnitValue.schema())

@@ -1,4 +1,5 @@
 """Test that duplicate file loading is prevented."""
+
 import pytest
 from pathlib import Path
 import numpy as np
@@ -15,10 +16,13 @@ def qtapplication():
     app = QApplication.instance()
     yield app
 
+
 def generate_example_sigmffile(tmpdir, filename="example") -> Path:
     """Generate a simple SigMF file for testing."""
     TOTAL_NUM_SAMPLES = 1000
-    np.zeros(TOTAL_NUM_SAMPLES, dtype=np.complex64).tofile(tmpdir / f"{filename}.sigmf-data")
+    np.zeros(TOTAL_NUM_SAMPLES, dtype=np.complex64).tofile(
+        tmpdir / f"{filename}.sigmf-data"
+    )
 
     smf = SigMFFile()
     smf.set_global_field(SigMFFile.DATATYPE_KEY, "cf32_le")
@@ -43,7 +47,9 @@ def test_duplicate_file_loading_prevention(tmpdir, qtapplication):
     # Second load of the same file should return None
     loaded_file2 = app_state.load_sigmf_file(sigmf_path)
     assert loaded_file2 is None
-    assert len(app_state._loaded_files.loaded_file_dict) == 1  # Still only one file loaded
+    assert (
+        len(app_state._loaded_files.loaded_file_dict) == 1
+    )  # Still only one file loaded
 
 
 def test_loading_different_files(tmpdir, qtapplication):
@@ -91,12 +97,9 @@ def test_duplicate_detection_with_symlinks(tmpdir, qtapplication):
 def test_loading_multiple_files_at_once(tmpdir, qtapplication):
     """Test that loading multiple different files works correctly."""
     app_state = AppState(parent=qtapplication)
-    
+
     # Generate multiple files
-    sigmf_paths = [
-        generate_example_sigmffile(tmpdir, f"file{i}")
-        for i in range(3)
-    ]
+    sigmf_paths = [generate_example_sigmffile(tmpdir, f"file{i}") for i in range(3)]
 
     # Load all files
     loaded_files = []
@@ -107,7 +110,7 @@ def test_loading_multiple_files_at_once(tmpdir, qtapplication):
 
     # Verify all files are loaded
     assert len(app_state._loaded_files.loaded_file_dict) == 3
-    
+
     # Verify they are all different
     file_ids = [lf.file_id for lf in loaded_files]
     assert len(set(file_ids)) == 3

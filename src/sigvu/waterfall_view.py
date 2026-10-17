@@ -1,9 +1,22 @@
-from PyQt6.QtCore import QPointF, QRectF, QObject, QRunnable, QThread, pyqtSignal, pyqtSlot
+from PyQt6.QtCore import (
+    QPointF,
+    QRectF,
+    QObject,
+    QRunnable,
+    QThread,
+    pyqtSignal,
+    pyqtSlot,
+)
 from PyQt6.QtWidgets import QApplication, QWidget, QHBoxLayout
 import pyqtgraph as pg
 import numpy as np
 
-from .loaded_file_mgmt import CaptureID, LoadedDictAction, AnnotationID, LoadedAnnotationDict
+from .loaded_file_mgmt import (
+    CaptureID,
+    LoadedDictAction,
+    AnnotationID,
+    LoadedAnnotationDict,
+)
 from sigvu.util import region_from_rectroi
 
 from .app_state import AppState
@@ -17,9 +30,11 @@ from .chunkwise_compute import ChunkwiseComputedArray, FrequencyDomainComputatio
 import threading
 
 import logging
+
 log = logging.getLogger(__name__)
 
 INITIAL_FRAMES_TO_DISPLAY = 1_000
+
 
 class WaterfallView(QWidget):
     def __init__(self, *args, **kwargs):
@@ -31,22 +46,30 @@ class WaterfallView(QWidget):
         waterfall_layout = QHBoxLayout()
 
         # Waterfall plot
-        self._waterfall = pg.PlotWidget(labels={'left': 'Time [s]', 'bottom': 'Frequency [Hz]'}, viewBox=myvb)
+        self._waterfall = pg.PlotWidget(
+            labels={"left": "Time [s]", "bottom": "Frequency [Hz]"}, viewBox=myvb
+        )
         self._waterfall.plotItem.getViewBox().invertY(True)
-        self._imageitem = pg.ImageItem(axisOrder='row-major')
+        self._imageitem = pg.ImageItem(axisOrder="row-major")
         self._waterfall.addItem(self._imageitem)
         self._waterfall.setMouseEnabled(x=True, y=True)
         waterfall_layout.addWidget(self._waterfall)
 
         self._waterfall.sigRangeChanged.connect(self._on_range_changed)
 
-        self._data_update_in_progress: WaterfallViewUpdaterWorker|None= None
+        self._data_update_in_progress: WaterfallViewUpdaterWorker | None = None
 
         # Colorbar for waterfall
         self._colorbar = pg.HistogramLUTWidget()
-        self._colorbar.setImageItem(self._imageitem) # connects the bar to the waterfall imageitem
-        self._colorbar.item.gradient.loadPreset('viridis') # set the color map, also sets the imageitem
-        self._imageitem.setLevels((-30, 20)) # needs to come after colorbar is created for some reason
+        self._colorbar.setImageItem(
+            self._imageitem
+        )  # connects the bar to the waterfall imageitem
+        self._colorbar.item.gradient.loadPreset(
+            "viridis"
+        )  # set the color map, also sets the imageitem
+        self._imageitem.setLevels(
+            (-30, 20)
+        )  # needs to come after colorbar is created for some reason
         waterfall_layout.addWidget(self._colorbar)
 
         # Freq crosshair
@@ -57,15 +80,25 @@ class WaterfallView(QWidget):
         self._waterfall.addItem(self._time_crosshair_y, ignoreBounds=True)
 
         self._roiPen = pg.mkPen(INTERVAL_ROI_COLOR, width=3)
-        #roi = pg.RectROI(pos=(0,0), size=(200,400), sideScalers=True, rotatable=False)
-        roi = LabeledRectROI(pos=(0,0), size=(200,400), sideScalers=True, rotatable=False, label_text="ROI", label_text_color=(255,255,255), label_fill_color=INTERVAL_ROI_COLOR)
+        # roi = pg.RectROI(pos=(0,0), size=(200,400), sideScalers=True, rotatable=False)
+        roi = LabeledRectROI(
+            pos=(0, 0),
+            size=(200, 400),
+            sideScalers=True,
+            rotatable=False,
+            label_text="ROI",
+            label_text_color=(255, 255, 255),
+            label_fill_color=INTERVAL_ROI_COLOR,
+        )
         roi.setPen(self._roiPen)
-        roi.setVisible(False) # Initially hidden
+        roi.setVisible(False)  # Initially hidden
 
         self._roi = roi
 
         # make sure the rect ROI is updated when the user drags it (in addition to during initial creation with shift-drag)
-        self._roi.sigRegionChanged.connect( lambda: self._waterfall_roi_set( region_from_rectroi(self._roi)) )
+        self._roi.sigRegionChanged.connect(
+            lambda: self._waterfall_roi_set(region_from_rectroi(self._roi))
+        )
 
         myvb.set_plot_and_rect(self._waterfall, self._roi)
         myvb.set_roi_change_callback(self._waterfall_roi_set)
@@ -79,13 +112,13 @@ class WaterfallView(QWidget):
         # Initialize the annotation ROI manager for rectangular ROIs
         def roi_factory(**kwargs):
             return LabeledRectROI(sideScalers=True, rotatable=False, **kwargs)
-        
+
         self._annotation_manager = AnnotationROIManager(
             plot_widget=self._waterfall,
             roi_dimensions=ROIDimensions.TIME_AND_FREQUENCY,
         )
 
-        self._current_capture_id: CaptureID|None = None
+        self._current_capture_id: CaptureID | None = None
 
         self._connect_app_signals()
 
@@ -118,24 +151,26 @@ class WaterfallView(QWidget):
     def _on_selected_capture_changed(self, capture_id: CaptureID):
         self._current_capture_id = capture_id
         self._annotation_manager.set_current_capture(capture_id)
-        
+
         app_state = self._get_app_state()
         capture = app_state.get_capture_by_id(capture_id)
 
         if capture is None:
             return
 
-        chan = 0 # TODO: select channel from somewhere
+        chan = 0  # TODO: select channel from somewhere
 
         loaded_file = capture.parent_loadedfile
-        cca = loaded_file.get_freq_chunkwise_computed_array(selected_channel=chan, comp_spec=app_state.get_fft_config())
+        cca = loaded_file.get_freq_chunkwise_computed_array(
+            selected_channel=chan, comp_spec=app_state.get_fft_config()
+        )
 
         center_freq_Hz = capture.center_freq_Hz
         sample_rate_Hz = loaded_file.sample_rate_Hz
 
         freq_axis = cca.get_freq_axis_assuming_center_frequency(center_freq_Hz)
         time_axis = cca.time_axis
-        capture_start_time_sec_relto_file = capture.start_sample_idx/sample_rate_Hz
+        capture_start_time_sec_relto_file = capture.start_sample_idx / sample_rate_Hz
 
         capture_duration_sec = capture.num_samples / sample_rate_Hz
         initial_display_duration_sec = INITIAL_FRAMES_TO_DISPLAY * cca.delta_t_per_frame
@@ -147,7 +182,9 @@ class WaterfallView(QWidget):
 
         rect = QRectF(
             QPointF(freq_axis.min, capture_start_time_sec_relto_file),
-            QPointF(freq_axis.max, capture_start_time_sec_relto_file + duration_to_display)
+            QPointF(
+                freq_axis.max, capture_start_time_sec_relto_file + duration_to_display
+            ),
         )
 
         self._waterfall.setRange(rect=rect, padding=0.0)
@@ -162,14 +199,18 @@ class WaterfallView(QWidget):
 
         # TODO: compute exents of data in thread and set color limits appropriately
 
-        #self._waterfall.setRange(
+        # self._waterfall.setRange(
 
         #    xRange=(freq_axis.min, freq_axis.max),
-        #    yRange=(capture_start_time_sec_relto_file, 
+        #    yRange=(capture_start_time_sec_relto_file,
         #            capture_start_time_sec_relto_file + duration_to_display)
-        #)
-        
-    def _on_range_changed(self, plot_widget:pg.PlotWidget, the_range:tuple[tuple[float,float], tuple[float,float]]):
+        # )
+
+    def _on_range_changed(
+        self,
+        plot_widget: pg.PlotWidget,
+        the_range: tuple[tuple[float, float], tuple[float, float]],
+    ):
         _, y_range = the_range
         y_min_sec, y_max_sec = y_range
 
@@ -184,7 +225,9 @@ class WaterfallView(QWidget):
         y_min_sec, y_max_sec = y_range
         self._update_displayed_data(y_min_sec, y_max_sec)
 
-    def _on_annotation_changed(self, annotation_id: AnnotationID, action: LoadedDictAction):
+    def _on_annotation_changed(
+        self, annotation_id: AnnotationID, action: LoadedDictAction
+    ):
         self._annotation_manager.on_annotation_changed(annotation_id, action)
 
     def _on_interval_changed(self):
@@ -215,16 +258,16 @@ class WaterfallView(QWidget):
         """Seek to a specific time in seconds by centering the view on it."""
         if self._current_capture_id is None:
             return
-        
+
         # Get current view range to determine how much to show around the target time
         x_range, y_range = self._waterfall.viewRange()
         current_height = y_range[1] - y_range[0]
-        
+
         # Center the view on the target time (time is on Y axis for waterfall)
         half_height = current_height / 2.0
         new_y_min = time_sec - half_height
         new_y_max = time_sec + half_height
-        
+
         self._waterfall.setYRange(new_y_min, new_y_max, padding=0)
 
     def _on_scene_mouse_moved(self, pos: QPointF):
@@ -232,28 +275,32 @@ class WaterfallView(QWidget):
             mousePoint = self._waterfall.getViewBox().mapSceneToView(pos)
             freq_Hz = mousePoint.x()
             time_sec = mousePoint.y()
-            self._freq_crosshair_x.setPos( freq_Hz )
-            self._time_crosshair_y.setPos( time_sec )
+            self._freq_crosshair_x.setPos(freq_Hz)
+            self._time_crosshair_y.setPos(time_sec)
 
             # TODO: handle frequency interval selection later:
             self._get_app_state().set_cursor_frequency(freq_Hz)
             self._get_app_state().set_cursor_time(time_sec)
 
-    def _set_plot_data(self, array_data: np.ndarray, true_start_time_sec_relto_capture: float):
+    def _set_plot_data(
+        self, array_data: np.ndarray, true_start_time_sec_relto_capture: float
+    ):
         if self._current_capture_id is None:
             return
 
         app_state = self._get_app_state()
         capture = app_state.get_capture_by_id(self._current_capture_id)
         if capture is None:
-            return 
+            return
         loaded_file = capture.parent_loadedfile
         sample_rate_Hz = loaded_file.sample_rate_Hz
 
-        chan = 0 # TODO: select channel from somewhere
+        chan = 0  # TODO: select channel from somewhere
 
-        cca = loaded_file.get_freq_chunkwise_computed_array(selected_channel=chan, comp_spec=app_state.get_fft_config())
-        freq_axis = cca.get_freq_axis_assuming_center_frequency( capture.center_freq_Hz )
+        cca = loaded_file.get_freq_chunkwise_computed_array(
+            selected_channel=chan, comp_spec=app_state.get_fft_config()
+        )
+        freq_axis = cca.get_freq_axis_assuming_center_frequency(capture.center_freq_Hz)
         time_axis = cca.time_axis
 
         num_frames, num_freq_bins = array_data.shape
@@ -265,19 +312,19 @@ class WaterfallView(QWidget):
 
         wf_rect = QRectF(
             f_lo_Hz,
-            time_lo_sec, 
+            time_lo_sec,
             f_hi_Hz - f_lo_Hz,
-            time_hi_sec-time_lo_sec,
+            time_hi_sec - time_lo_sec,
         )
 
         self._imageitem.setImage(array_data)
         self._imageitem.setRect(wf_rect)
 
         # TODO: enforce max zoom-out here?
-        #self._waterfall.setYRange( time_lo_sec, time_hi_sec )
-        #self._waterfall.setXRange( f_lo_Hz, f_hi_Hz )
+        # self._waterfall.setYRange( time_lo_sec, time_hi_sec )
+        # self._waterfall.setXRange( f_lo_Hz, f_hi_Hz )
 
-    def _update_displayed_data(self, y_min_sec:float, y_max_sec:float):
+    def _update_displayed_data(self, y_min_sec: float, y_max_sec: float):
         if self._current_capture_id is None:
             return
 
@@ -289,24 +336,42 @@ class WaterfallView(QWidget):
         app_state = self._get_app_state()
         capture = app_state.get_capture_by_id(self._current_capture_id)
         if capture is None:
-            return 
+            return
         loaded_file = capture.parent_loadedfile
         sample_rate_Hz = loaded_file.sample_rate_Hz
 
         # TODO: select channel from somewhere
         chan = 0
 
-        cca = loaded_file.get_freq_chunkwise_computed_array(selected_channel=chan, comp_spec=app_state.get_fft_config())
+        cca = loaded_file.get_freq_chunkwise_computed_array(
+            selected_channel=chan, comp_spec=app_state.get_fft_config()
+        )
 
-        capture_start_time_sec_relto_file = capture.start_sample_idx/sample_rate_Hz
-        data_start_time_sec_relto_file = (capture_start_time_sec_relto_file + y_min_sec - MARGIN_FRAMES * cca.delta_t_per_frame )
-        data_end_time_sec_relto_file = (capture_start_time_sec_relto_file + y_max_sec + MARGIN_FRAMES * cca.delta_t_per_frame )
+        capture_start_time_sec_relto_file = capture.start_sample_idx / sample_rate_Hz
+        data_start_time_sec_relto_file = (
+            capture_start_time_sec_relto_file
+            + y_min_sec
+            - MARGIN_FRAMES * cca.delta_t_per_frame
+        )
+        data_end_time_sec_relto_file = (
+            capture_start_time_sec_relto_file
+            + y_max_sec
+            + MARGIN_FRAMES * cca.delta_t_per_frame
+        )
 
-        start_idx_relto_file = cca.time_axis.idx_nearest_to_value(data_start_time_sec_relto_file)
-        end_idx_relto_file = cca.time_axis.idx_nearest_to_value(data_end_time_sec_relto_file)   
+        start_idx_relto_file = cca.time_axis.idx_nearest_to_value(
+            data_start_time_sec_relto_file
+        )
+        end_idx_relto_file = cca.time_axis.idx_nearest_to_value(
+            data_end_time_sec_relto_file
+        )
 
-        true_start_time_sec_relto_file = cca.time_axis.value_at_idx(start_idx_relto_file)
-        true_start_time_sec_relto_capture = true_start_time_sec_relto_file - capture_start_time_sec_relto_file
+        true_start_time_sec_relto_file = cca.time_axis.value_at_idx(
+            start_idx_relto_file
+        )
+        true_start_time_sec_relto_capture = (
+            true_start_time_sec_relto_file - capture_start_time_sec_relto_file
+        )
 
         runnable = WaterfallViewUpdaterWorker(
             cca=cca,
@@ -323,13 +388,15 @@ class WaterfallView(QWidget):
 class WaterfallViewUpdaterSignals(QObject):
     update_data_signal = pyqtSignal((np.ndarray, float))
 
+
 class WaterfallViewUpdaterWorker(QRunnable):
-    def __init__(self, 
-            cca: ChunkwiseComputedArray,
-            start_idx_relto_file: int,
-            end_idx_relto_file: int,
-            true_start_time_sec_relto_capture: float,
-        ):
+    def __init__(
+        self,
+        cca: ChunkwiseComputedArray,
+        start_idx_relto_file: int,
+        end_idx_relto_file: int,
+        true_start_time_sec_relto_capture: float,
+    ):
         super().__init__()
 
         self._cca = cca
@@ -343,11 +410,12 @@ class WaterfallViewUpdaterWorker(QRunnable):
     def run(self):
         try:
             array_data = self._cca.get_range_blocking(
-                self._start_idx_relto_file,
-                self._end_idx_relto_file
+                self._start_idx_relto_file, self._end_idx_relto_file
             )
 
             if not self.canceled.is_set():
-                self.signals.update_data_signal.emit( array_data, self._true_start_time_sec_relto_capture )
+                self.signals.update_data_signal.emit(
+                    array_data, self._true_start_time_sec_relto_capture
+                )
         except:
             log.exception("Error in WaterfallViewUpdaterWorker")

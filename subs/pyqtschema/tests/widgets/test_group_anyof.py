@@ -4,18 +4,16 @@ from pyqtschema.widgets.any_of import AnyOfSchemaWidget
 schema = {
     "title": "SimpleAnyOf",
     "type": "object",
-    "properties": {"value": {
-        "title": "Value",
-        "anyOf": [{"type": "string"}, {"type": "integer"}]
-    }
+    "properties": {
+        "value": {"title": "Value", "anyOf": [{"type": "string"}, {"type": "integer"}]}
     },
-    "required": ["value"]
+    "required": ["value"],
 }
 
 
 def test_any_of_init(qtbot):
     builder = WidgetBuilder(schema)
-    sub_schema = schema['properties']['value']
+    sub_schema = schema["properties"]["value"]
     widget = AnyOfSchemaWidget(sub_schema, {}, builder)
 
     assert widget.state == ""
@@ -24,10 +22,10 @@ def test_any_of_init(qtbot):
 
 def test_any_of_set_state(qtbot):
     builder = WidgetBuilder(schema)
-    sub_schema = schema['properties']['value']
+    sub_schema = schema["properties"]["value"]
     widget = AnyOfSchemaWidget(sub_schema, {}, builder)
 
-    value = 'Hi there'
+    value = "Hi there"
     widget.state = value
     assert widget.state == value
     assert widget.widgets[0].state == value
@@ -35,9 +33,9 @@ def test_any_of_set_state(qtbot):
 
 
 def test_any_of_set_state_switch(qtbot):
-    """ combo-change due to different type """
+    """combo-change due to different type"""
     builder = WidgetBuilder(schema)
-    sub_schema = schema['properties']['value']
+    sub_schema = schema["properties"]["value"]
     widget = AnyOfSchemaWidget(sub_schema, {}, builder)
 
     value = 1
@@ -48,19 +46,20 @@ def test_any_of_set_state_switch(qtbot):
 
 
 schema_issue_13 = {
-    'title': 'UnionIssue',
-    'type': 'object', 'properties': {
-        'output': {
-            'title': 'Output',
-            'anyOf': [{'type': 'string'}, {'type': 'string', 'format': 'path'}]
+    "title": "UnionIssue",
+    "type": "object",
+    "properties": {
+        "output": {
+            "title": "Output",
+            "anyOf": [{"type": "string"}, {"type": "string", "format": "path"}],
         }
-    }
+    },
 }
 
 
 def test_any_of_init_issue_13(qtbot):
     builder = WidgetBuilder(schema_issue_13)
-    sub_schema = schema_issue_13['properties']['output']
+    sub_schema = schema_issue_13["properties"]["output"]
     widget = AnyOfSchemaWidget(sub_schema, {}, builder)
 
     assert len(widget.widgets) == 2

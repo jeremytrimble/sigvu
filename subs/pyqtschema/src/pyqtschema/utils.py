@@ -35,9 +35,30 @@ class Encoder(JSONEncoder):
         return JSONEncoder.default(self, o)
 
 
-def json_dump(obj, fp, *, skipkeys=False, ensure_ascii=True, check_circular=True, allow_nan=True, indent=None,
-              separators=None, sort_keys=False, **kwargs):
-    """ adjusted json-dump to support Enum-values"""
-    kwargs['cls'] = Encoder
-    return dump(obj, fp, skipkeys=skipkeys, ensure_ascii=ensure_ascii, check_circular=check_circular,
-                allow_nan=allow_nan, indent=indent, separators=separators, sort_keys=sort_keys, **kwargs)
+def json_dump(
+    obj,
+    fp,
+    *,
+    skipkeys=False,
+    ensure_ascii=True,
+    check_circular=True,
+    allow_nan=True,
+    indent=None,
+    separators=None,
+    sort_keys=False,
+    **kwargs,
+):
+    """adjusted json-dump to support Enum-values"""
+    kwargs["cls"] = Encoder
+    return dump(
+        obj,
+        fp,
+        skipkeys=skipkeys,
+        ensure_ascii=ensure_ascii,
+        check_circular=check_circular,
+        allow_nan=allow_nan,
+        indent=indent,
+        separators=separators,
+        sort_keys=sort_keys,
+        **kwargs,
+    )

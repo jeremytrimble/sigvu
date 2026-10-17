@@ -10,5 +10,5 @@ class FileSystem(BaseModel):
     my_dir: DirectoryPath
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     build_example(FileSystem.schema())

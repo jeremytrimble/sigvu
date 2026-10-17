@@ -8,31 +8,36 @@ from ..schema import Schema
 from .base import state_property, SchemaWidgetMixin
 from .utils import iter_layout_widgets
 
-CHECKER_KEY = 'checker'
+CHECKER_KEY = "checker"
 
 
-def _any_of_schema(schema: dict, widget_builder: 'WidgetBuilder') -> List[Schema]:
+def _any_of_schema(schema: dict, widget_builder: "WidgetBuilder") -> List[Schema]:
     """ """
     out = []
-    for _any in schema['anyOf']:
-        _schema = {'type': 'object',
-                   'properties': {
-                       CHECKER_KEY: widget_builder.schema.resolve_schema(_any)
-                   },
-                   'definitions': widget_builder.schema.definitions(),
-                   "schema": {
-                       'additionalProperties': False,
-                   },
-                   'additionalProperties': False,
-                   }
+    for _any in schema["anyOf"]:
+        _schema = {
+            "type": "object",
+            "properties": {CHECKER_KEY: widget_builder.schema.resolve_schema(_any)},
+            "definitions": widget_builder.schema.definitions(),
+            "schema": {
+                "additionalProperties": False,
+            },
+            "additionalProperties": False,
+        }
         out.append(Schema(_schema))
 
     return out
 
 
 class AnyOfSchemaWidget(SchemaWidgetMixin, QGroupBox):
-
-    def __init__(self, schema: dict, ui_schema: dict, widget_builder: 'WidgetBuilder', *args, **kwargs):
+    def __init__(
+        self,
+        schema: dict,
+        ui_schema: dict,
+        widget_builder: "WidgetBuilder",
+        *args,
+        **kwargs,
+    ):
         self.select_combo: QComboBox = None
         self.items_group: QGroupBox = None
 
@@ -45,8 +50,8 @@ class AnyOfSchemaWidget(SchemaWidgetMixin, QGroupBox):
         self.any_of_schemas: List[Schema] = _any_of_schema(schema, widget_builder)
 
     def configure(self):
-        if 'title' in self.schema:
-            self.setTitle(self.schema['title'])
+        if "title" in self.schema:
+            self.setTitle(self.schema["title"])
 
         self.select_combo = QComboBox()
         self.select_combo.currentIndexChanged.connect(self.select_schema)
@@ -65,32 +70,35 @@ class AnyOfSchemaWidget(SchemaWidgetMixin, QGroupBox):
             widget.setVisible(iii == idx)
         self.on_changed.emit(self.state)
 
-    def populate_from_schema(self, schema: dict, ui_schema: dict, widget_builder: 'WidgetBuilder'
-                             ) -> Dict[str, QWidget]:
+    def populate_from_schema(
+        self, schema: dict, ui_schema: dict, widget_builder: "WidgetBuilder"
+    ) -> Dict[str, QWidget]:
         self.setFlat(False)
 
         _combo_items = []
-        for sub_schema in schema.get('anyOf', []):
+        for sub_schema in schema.get("anyOf", []):
             try:  # TODO: Use BBuilderClass to unify the determination
-                name = sub_schema['$ref']
-                c_name = name.split('/')[-1]
+                name = sub_schema["$ref"]
+                c_name = name.split("/")[-1]
             except KeyError:
-                c_name = name = sub_schema['type']
+                c_name = name = sub_schema["type"]
 
             _combo_items.append(c_name)
             sub_ui_schema = ui_schema.get(name, {})
 
-            widget = widget_builder.create_widget(sub_schema, sub_ui_schema, parent=self)  # TODO onchanged
+            widget = widget_builder.create_widget(
+                sub_schema, sub_ui_schema, parent=self
+            )  # TODO onchanged
             self.widget_labels.append(c_name)
             self.widgets.append(widget)
             widget.setVisible(False)
 
             widget.on_changed.connect(partial(self.widget_on_changed, name))
-            if 'title' in schema:
-                self.setTitle(schema['title'])
+            if "title" in schema:
+                self.setTitle(schema["title"])
 
-            if 'description' in schema:
-                self.setToolTip(schema['description'])
+            if "description" in schema:
+                self.setToolTip(schema["description"])
 
             self.items_group.layout().addWidget(widget)
 
@@ -130,7 +138,9 @@ class AnyOfSchemaWidget(SchemaWidgetMixin, QGroupBox):
                     # verify key manually, since additionalProperties is not working (due to a bug? in jsonschema)
                     stop = False
                     for key in state.keys():
-                        stop = key not in _schema.schema['properties'].get(CHECKER_KEY, {}).get('properties', {})
+                        stop = key not in _schema.schema["properties"].get(
+                            CHECKER_KEY, {}
+                        ).get("properties", {})
                         if stop:
                             break
                     if stop:

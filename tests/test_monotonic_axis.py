@@ -2,6 +2,7 @@ from sigvu.monotonic_axis import MonotonicAxis
 import pytest
 import numpy as np
 
+
 def test_monotonic_axis():
     # Test basic properties
     axis = MonotonicAxis(slope=2.0, num_points=5, intercept=1.0)

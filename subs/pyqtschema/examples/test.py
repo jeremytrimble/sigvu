@@ -12,53 +12,37 @@ if __name__ == "__main__":
         "type": "object",
         "title": "Number fields and widgets",
         "properties": {
-            "schema_path": {
-                "title": "Schema path",
-                "type": "string"
-            },
+            "schema_path": {"title": "Schema path", "type": "string"},
             "integerRangeSteps": {
                 "title": "Integer range (by 10)",
                 "type": "integer",
                 "minimum": 55,
                 "maximum": 100,
-                "multipleOf": 10
+                "multipleOf": 10,
             },
-            "sky_colour": {
-                "type": "string"
-            },
+            "sky_colour": {"type": "string"},
             "names": {
                 "type": "array",
                 "items": [
                     {
                         "type": "string",
                         "pattern": "[a-zA-Z\-'\s]+",
-                        "enum": [
-                            "Jack", "Jill"
-                        ]
+                        "enum": ["Jack", "Jill"],
                     },
                     {
                         "type": "string",
                         "pattern": "[a-zA-Z\-'\s]+",
-                        "enum": [
-                            "Alice", "Bob"
-                        ]
+                        "enum": ["Alice", "Bob"],
                     },
                 ],
-                "additionalItems": {
-                    "type": "number"
-                },
-            }
-        }
+                "additionalItems": {"type": "number"},
+            },
+        },
     }
 
     ui_schema = {
-        "schema_path": {
-            "ui:widget": "filepath"
-        },
-        "sky_colour": {
-            "ui:widget": "colour"
-        }
-
+        "schema_path": {"ui:widget": "filepath"},
+        "sky_colour": {"ui:widget": "colour"},
     }
 
     builder = WidgetBuilder(schema)
@@ -67,10 +51,7 @@ if __name__ == "__main__":
         "schema_path": "some_file.py",
         "integerRangeSteps": 60,
         "sky_colour": "#8f5902",
-        "names": [
-            "Jack",
-            "Bob"
-        ]
+        "names": ["Jack", "Bob"],
     }
     form.show()
     form.widget.on_changed.connect(lambda d: print(dumps(d, indent=4)))

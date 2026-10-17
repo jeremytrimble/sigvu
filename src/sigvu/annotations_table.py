@@ -1,7 +1,21 @@
 from PyQt6.QtCore import QAbstractTableModel, Qt, QSortFilterProxyModel, QModelIndex
-from PyQt6.QtWidgets import QTableWidget, QTableWidgetItem, QTableView, QWidget, QApplication, QHBoxLayout, QMenu, QMessageBox
+from PyQt6.QtWidgets import (
+    QTableWidget,
+    QTableWidgetItem,
+    QTableView,
+    QWidget,
+    QApplication,
+    QHBoxLayout,
+    QMenu,
+    QMessageBox,
+)
 
-from .loaded_file_mgmt import LoadedAnnotationDict, LoadedDictAction, AnnotationID, CaptureID
+from .loaded_file_mgmt import (
+    LoadedAnnotationDict,
+    LoadedDictAction,
+    AnnotationID,
+    CaptureID,
+)
 from .json_editor_dialog import JSONEditorDialog
 
 from .app_state import AppState
@@ -14,10 +28,11 @@ log = logging.getLogger(__name__)
 # Note: difference between QTableWidget and QTableView is that QTableWidget has
 # its own built-in model, whereas QTableView requires a separate model to be developed
 
+
 class AnnotationsModel(QAbstractTableModel):
     def __init__(self, parent=None):
         super().__init__(parent)
-        self._current_capture_id: CaptureID|None = None
+        self._current_capture_id: CaptureID | None = None
         self._connect_app_signals()
 
         self._column_names = (
@@ -30,7 +45,7 @@ class AnnotationsModel(QAbstractTableModel):
             "Center Freq",
             "High Freq",
             "Bandwidth",
-            #"More Info",
+            # "More Info",
         )
         # Define which columns are editable
         self._editable_columns = {
@@ -75,43 +90,63 @@ class AnnotationsModel(QAbstractTableModel):
             log.info(f"Setting annotations model to empty for capture_id={capture_id}")
             self._annotation_id_list = []
 
-    def _on_annotation_changed(self, annotation_id:AnnotationID, action: LoadedDictAction):
+    def _on_annotation_changed(
+        self, annotation_id: AnnotationID, action: LoadedDictAction
+    ):
         if action == LoadedDictAction.MODIFIED:
             top_left = self.createIndex(0, 0)
-            bottom_right = self.createIndex(self.rowCount(None) - 1, self.columnCount(None) - 1)
+            bottom_right = self.createIndex(
+                self.rowCount(None) - 1, self.columnCount(None) - 1
+            )
             self.dataChanged.emit(top_left, bottom_right)
-        elif action in (LoadedDictAction.LOADED, LoadedDictAction.ADDED, LoadedDictAction.DELETED, LoadedDictAction.CLOSED):
+        elif action in (
+            LoadedDictAction.LOADED,
+            LoadedDictAction.ADDED,
+            LoadedDictAction.DELETED,
+            LoadedDictAction.CLOSED,
+        ):
             if action == LoadedDictAction.DELETED:
-
                 try:
                     row_idx_to_remove = self._annotation_id_list.index(annotation_id)
                 except ValueError:
-                    log.warning(f"Attempted to delete annotation ID {annotation_id} not in model")
+                    log.warning(
+                        f"Attempted to delete annotation ID {annotation_id} not in model"
+                    )
                     return
 
                 log.debug(f"Annotation deleted: {annotation_id}")
-                self.beginRemoveRows(QModelIndex(), row_idx_to_remove, row_idx_to_remove)
+                self.beginRemoveRows(
+                    QModelIndex(), row_idx_to_remove, row_idx_to_remove
+                )
                 self._annotation_id_list.pop(row_idx_to_remove)
                 self.endRemoveRows()
                 log.debug(f"did the removerows dance for {annotation_id}")
-            else: # adding creating or loading
-
+            else:  # adding creating or loading
                 # check to see if this annotation is part of the current capture
                 if self._current_capture_id is None:
-                    log.debug(f"Skipping annotation {annotation_id=}, because no capture is selected")
+                    log.debug(
+                        f"Skipping annotation {annotation_id=}, because no capture is selected"
+                    )
                     return
                 app_state = self._get_app_state()
-                current_capture = app_state._loaded_files.get_capture_from_id(self._current_capture_id)
+                current_capture = app_state._loaded_files.get_capture_from_id(
+                    self._current_capture_id
+                )
                 parent_loadedfile = current_capture.parent_loadedfile
                 if annotation_id not in parent_loadedfile.get_annotations_dict():
-                    log.debug(f"Skipping annotation {annotation_id=}, because it is not part of the current file")
+                    log.debug(
+                        f"Skipping annotation {annotation_id=}, because it is not part of the current file"
+                    )
                 else:
                     log.debug(f"Annotation added: {annotation_id}")
-                    self.beginInsertRows(QModelIndex(), len(self._annotation_id_list), len(self._annotation_id_list))
+                    self.beginInsertRows(
+                        QModelIndex(),
+                        len(self._annotation_id_list),
+                        len(self._annotation_id_list),
+                    )
                     self._annotation_id_list.append(annotation_id)
                     self.endInsertRows()
                     log.debug(f"did the insertrows dance for {annotation_id}")
-
 
     def rowCount(self, index):
         # TODO: what is index for?
@@ -136,13 +171,17 @@ class AnnotationsModel(QAbstractTableModel):
             return base_flags | Qt.ItemFlag.ItemIsEditable
         return base_flags
 
-    def _get_annotation_id_and_dict_for_row_idx(self, index:int) -> tuple[AnnotationID|None, LoadedAnnotationDict|None]:
+    def _get_annotation_id_and_dict_for_row_idx(
+        self, index: int
+    ) -> tuple[AnnotationID | None, LoadedAnnotationDict | None]:
         if index < 0 or index >= len(self._annotation_id_list):
             return None, None
 
         annotation_id = self._annotation_id_list[index]
         app_state = self._get_app_state()
-        annotation_dict = app_state._loaded_files._annotation_id_to_annotations.get(annotation_id)    
+        annotation_dict = app_state._loaded_files._annotation_id_to_annotations.get(
+            annotation_id
+        )
 
         if annotation_dict is None:
             return None, None
@@ -157,9 +196,14 @@ class AnnotationsModel(QAbstractTableModel):
             return None
 
         col = index.column()
-        if row < 0 or row >= len(self._annotation_id_list) or col < 0 or col >= self._NUM_COLUMNS:
+        if (
+            row < 0
+            or row >= len(self._annotation_id_list)
+            or col < 0
+            or col >= self._NUM_COLUMNS
+        ):
             return None
-        
+
         if role == Qt.ItemDataRole.DisplayRole:
             if col == 0:
                 # Visible column - don't show text, just checkbox
@@ -208,14 +252,18 @@ class AnnotationsModel(QAbstractTableModel):
                     return "--"
                 else:
                     return freq_format(v)
-            #elif col == 9:
+            # elif col == 9:
             #    return "TODO"   # put more here
-        
+
         elif role == Qt.ItemDataRole.CheckStateRole:
             # Only handle checkbox for the visible column
             if col == 0:
-                return Qt.CheckState.Checked if annotation.visible else Qt.CheckState.Unchecked
-        
+                return (
+                    Qt.CheckState.Checked
+                    if annotation.visible
+                    else Qt.CheckState.Unchecked
+                )
+
         elif role == Qt.ItemDataRole.UserRole:
             # Return raw comparable values for sorting
             if col == 0:
@@ -227,38 +275,38 @@ class AnnotationsModel(QAbstractTableModel):
             elif col == 2:
                 # Start Time - return numeric value or inf for None
                 v = annotation.get_start_time_sec(self._current_capture_id)
-                return v if v is not None else float('inf')
+                return v if v is not None else float("inf")
             elif col == 3:
                 # End Time - return numeric value or inf for None
                 v = annotation.get_end_time_sec(self._current_capture_id)
-                return v if v is not None else float('inf')
+                return v if v is not None else float("inf")
             elif col == 4:
                 # Duration - return numeric value or inf for None
                 v = annotation.duration_sec
-                return v if v is not None else float('inf')
+                return v if v is not None else float("inf")
             elif col == 5:
                 # Low Freq - return numeric value or inf for None
                 v = annotation.low_frequency_Hz
-                return v if v is not None else float('inf')
+                return v if v is not None else float("inf")
             elif col == 6:
                 # Center Freq - return numeric value or inf for None
                 v = annotation.center_frequency_Hz
-                return v if v is not None else float('inf')
+                return v if v is not None else float("inf")
             elif col == 7:
                 # High Freq - return numeric value or inf for None
                 v = annotation.high_frequency_Hz
-                return v if v is not None else float('inf')
+                return v if v is not None else float("inf")
             elif col == 8:
                 # Bandwidth - return numeric value or inf for None
                 v = annotation.bandwidth_Hz
-                return v if v is not None else float('inf')
-            #elif col == 9:
+                return v if v is not None else float("inf")
+            # elif col == 9:
             #    # More Info - return string
             #    return "TODO"
 
     def setData(self, index, value, role=Qt.ItemDataRole.EditRole):
         # Handle checkbox state changes
-        
+
         row = index.row()
 
         _, annotation_dict = self._get_annotation_id_and_dict_for_row_idx(row)
@@ -270,16 +318,16 @@ class AnnotationsModel(QAbstractTableModel):
                 # Set visibility based on checkbox state
                 # In Qt6, value can be int or Qt.CheckState
                 if isinstance(value, int):
-                    new_visible = (value == Qt.CheckState.Checked.value)
+                    new_visible = value == Qt.CheckState.Checked.value
                 else:
-                    new_visible = (value == Qt.CheckState.Checked)
+                    new_visible = value == Qt.CheckState.Checked
                 annotation_dict.visible = new_visible
-                
+
                 # Emit dataChanged signal to update the view, specifying the CheckStateRole
                 self.dataChanged.emit(index, index, [Qt.ItemDataRole.CheckStateRole])
                 return True
             return False
-        
+
         if role != Qt.ItemDataRole.EditRole:
             return False
 
@@ -293,7 +341,9 @@ class AnnotationsModel(QAbstractTableModel):
             elif col == 2:  # Start Time
                 try:
                     time_sec = parse_time_str(str(value))
-                    annotation_dict.set_start_time_sec(self._current_capture_id, time_sec)
+                    annotation_dict.set_start_time_sec(
+                        self._current_capture_id, time_sec
+                    )
                 except ValueError:
                     return False
             elif col == 3:  # End Time
@@ -329,7 +379,9 @@ class AnnotationsModel(QAbstractTableModel):
             elif col == 8:  # Bandwidth
                 try:
                     freq = parse_freq_str(str(value))
-                    annotation_dict.bandwidth_Hz = freq  # This will update high/low keeping center fixed
+                    annotation_dict.bandwidth_Hz = (
+                        freq  # This will update high/low keeping center fixed
+                    )
                 except ValueError:
                     return False
             else:
@@ -342,6 +394,7 @@ class AnnotationsModel(QAbstractTableModel):
             log.error(f"Error updating annotation: {e}")
             return False
 
+
 class AnnotationsSortFilterProxyModel(QSortFilterProxyModel):
     """Custom proxy model that prevents sorting on the Visible column."""
 
@@ -349,22 +402,23 @@ class AnnotationsSortFilterProxyModel(QSortFilterProxyModel):
         # return an empty QModelIndex since we have no parent model item
         # Note: without this, the app crashes when deleting annotations
         return QModelIndex()
-    
+
     def lessThan(self, left, right):
         """Override to prevent sorting on column 0 (Visible)."""
         # If trying to sort by the Visible column, don't actually sort
         if left.column() == 0:
             return False
-        
+
         # For other columns, use the default sorting behavior
         return super().lessThan(left, right)
+
 
 class AnnotationsTable(QWidget):
     def __init__(self, parent=None):
         super().__init__(parent)
         self.table = QTableView(self)
         self.model = AnnotationsModel(self)
-        
+
         # Create and configure custom proxy model for sorting
         self.proxy_model = AnnotationsSortFilterProxyModel(self)
         self.proxy_model.setSourceModel(self.model)
@@ -372,46 +426,48 @@ class AnnotationsTable(QWidget):
         self.proxy_model.setDynamicSortFilter(True)
 
         self.table.setModel(self.proxy_model)
-        
+
         # Enable sorting on the table view
         self.table.setSortingEnabled(True)
-        
+
         # Enable context menu
         self.table.setContextMenuPolicy(Qt.ContextMenuPolicy.CustomContextMenu)
         self.table.customContextMenuRequested.connect(self._on_context_menu)
-        
+
         self.layout = QHBoxLayout()
         self.layout.addWidget(self.table)
         self.setLayout(self.layout)
-        
+
         # Track current sort column and order for toggling
         self._current_sort_column = -1
         self._current_sort_order = Qt.AscendingOrder
-        
+
         # Track which column was last clicked for seeking behavior
         self._last_clicked_column = -1
-        
+
         # Flag to prevent recursion when syncing selection
         self._updating_selection = False
-        
+
         # Connect header click to custom handler
         header = self.table.horizontalHeader()
         header.sectionClicked.connect(self._on_header_clicked)
-        
+
         self.model.layoutChanged.connect(self.table.resizeColumnsToContents)
 
         self.table.selectionModel().selectionChanged.connect(self._on_selection_changed)
-        
+
         # Connect to table clicks to track which column was clicked
         self.table.clicked.connect(self._on_cell_clicked)
-        
+
         # Connect to AppState signal to sync selection from external changes
         app_state = self._get_app_state()
-        app_state.selected_annotation_changed.connect(self._on_annotation_selection_changed_externally)
+        app_state.selected_annotation_changed.connect(
+            self._on_annotation_selection_changed_externally
+        )
 
     def _get_app_state(self) -> AppState:
         return QApplication.instance().app_state
-    
+
     def _on_cell_clicked(self, index):
         """Track which column was clicked for seeking behavior."""
         self._last_clicked_column = index.column()
@@ -420,39 +476,44 @@ class AnnotationsTable(QWidget):
         """Handle selection changes in the table."""
         if self._updating_selection:
             return
-            
+
         app_state = self._get_app_state()
         indexes = self.table.selectionModel().selectedIndexes()
         if not indexes:
             app_state.set_selected_annotation(None)
             return
-        
+
         # Get the first selected index
         first_index = indexes[0]
-        
+
         # Map proxy index to source model index
         source_index = self.proxy_model.mapToSource(first_index)
-        
-        annotation_id, annotation_dict = self.model._get_annotation_id_and_dict_for_row_idx(source_index.row()) 
+
+        annotation_id, annotation_dict = (
+            self.model._get_annotation_id_and_dict_for_row_idx(source_index.row())
+        )
         app_state.set_selected_annotation(annotation_id)
-    def _on_annotation_selection_changed_externally(self, annotation_id: AnnotationID|None):
+
+    def _on_annotation_selection_changed_externally(
+        self, annotation_id: AnnotationID | None
+    ):
         """Handle annotation selection changes from external sources (e.g., clicking labels in plots)."""
         if self._updating_selection:
             return
-        
+
         self._updating_selection = True
         try:
             if annotation_id is None:
                 self.table.clearSelection()
                 return
-            
+
             # Find the row for this annotation_id
             for row_idx in range(len(self.model._annotation_id_list)):
                 if self.model._annotation_id_list[row_idx] == annotation_id:
                     # Map source row to proxy row
                     source_index = self.model.index(row_idx, 0)
                     proxy_index = self.proxy_model.mapFromSource(source_index)
-                    
+
                     if proxy_index.isValid():
                         # Select the entire row
                         self.table.selectRow(proxy_index.row())
@@ -468,7 +529,7 @@ class AnnotationsTable(QWidget):
         if logical_index == 0:
             self._toggle_all_annotations_visibility()
             return
-        
+
         # Normal sorting behavior for other columns
         if logical_index == self._current_sort_column:
             # Toggle sort order for the same column
@@ -480,12 +541,14 @@ class AnnotationsTable(QWidget):
             # New column clicked, default to ascending
             self._current_sort_column = logical_index
             self._current_sort_order = Qt.AscendingOrder
-        
+
         # Apply the sort
         self.proxy_model.sort(self._current_sort_column, self._current_sort_order)
-        
+
         # Update header sort indicator
-        self.table.horizontalHeader().setSortIndicator(self._current_sort_column, self._current_sort_order)
+        self.table.horizontalHeader().setSortIndicator(
+            self._current_sort_column, self._current_sort_order
+        )
 
     def _toggle_all_annotations_visibility(self):
         """Toggle visibility for all annotations in the current capture."""
@@ -493,22 +556,24 @@ class AnnotationsTable(QWidget):
         # code in the menu and could be consolidated in the future.
 
         app_state = self._get_app_state()
-        annotations_dict : dict[str, LoadedAnnotationDict ]= {}
+        annotations_dict: dict[str, LoadedAnnotationDict] = {}
         for annotation_id in self.model._annotation_id_list:
-            if annotation := app_state._loaded_files._annotation_id_to_annotations.get(annotation_id):
+            if annotation := app_state._loaded_files._annotation_id_to_annotations.get(
+                annotation_id
+            ):
                 annotations_dict[annotation_id] = annotation
 
         if not annotations_dict:
             return
-        
+
         # Determine if we should show all or hide all
         # If any annotation is hidden, show all. Otherwise, hide all.
         any_hidden = any(not ann.visible for ann in annotations_dict.values())
-        
+
         # Toggle all annotations
         for annotation in annotations_dict.values():
             annotation.visible = any_hidden
-        
+
         # The visibility changes will trigger annotation_changed signals,
         # which will update the views automatically
 
@@ -517,18 +582,18 @@ class AnnotationsTable(QWidget):
         index = self.table.indexAt(position)
         if not index.isValid():
             return
-        
+
         # Map proxy index to source model index
         source_index = self.proxy_model.mapToSource(index)
-        
+
         menu = QMenu(self)
         goto_start_time_action = menu.addAction("Go to Start Time")
         goto_end_time_action = menu.addAction("Go to End Time")
         view_json_action = menu.addAction("View/Edit Annotation JSON")
         delete_action = menu.addAction("Delete Annotation")
-        
+
         action = menu.exec_(self.table.viewport().mapToGlobal(position))
-        
+
         if action == view_json_action:
             self._view_edit_annotation_json(source_index.row())
         elif action == delete_action:
@@ -557,7 +622,7 @@ class AnnotationsTable(QWidget):
         if time_sec is not None:
             app_state.time_view_seek_to_time(time_sec)
             app_state.waterfall_view_seek_to_time(time_sec)
-    
+
     def _view_edit_annotation_json(self, row):
         """Open a dialog to view and edit the annotation's raw JSON."""
 
@@ -567,17 +632,17 @@ class AnnotationsTable(QWidget):
 
         # Convert annotation to dict for editing
         annotation_data = dict(annotation)
-        
+
         # Get label for dialog title
         label = annotation.get(sigmf.SigMFFile.LABEL_KEY, f"Annotation {row}")
-        
+
         dialog = JSONEditorDialog(
             parent=self,
             json_data=annotation_data,
             read_only=False,  # Allow editing
-            title=f"Annotation JSON - {label}"
+            title=f"Annotation JSON - {label}",
         )
-        
+
         if dialog.exec():
             # User clicked OK, update the annotation with the edited data
             edited_data = dialog.get_json()
@@ -588,14 +653,18 @@ class AnnotationsTable(QWidget):
                     annotation.update(edited_data)
                 except Exception as e:
                     log.error(f"Error updating annotation from JSON: {e}")
-    
+
     def _delete_annotation(self, row):
         """Delete the annotation at the specified row."""
-        annotation_id, annotation = self.model._get_annotation_id_and_dict_for_row_idx(row)
+        annotation_id, annotation = self.model._get_annotation_id_and_dict_for_row_idx(
+            row
+        )
         if annotation is not None:
             annotation.delete_annotation()
         else:
-            log.warning(f'Attempted to delete non-existent annotation ID {annotation_id}')
+            log.warning(
+                f"Attempted to delete non-existent annotation ID {annotation_id}"
+            )
 
     def get_application(self):
         return self.parent().application

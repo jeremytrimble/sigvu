@@ -6,8 +6,8 @@ from pyqtschema import build_example
 
 
 class Linux(BaseModel):
-    distro: str = 'distro'
-    version: str = 'version'
+    distro: str = "distro"
+    version: str = "version"
 
 
 class Windows(BaseModel):
@@ -18,8 +18,8 @@ class Selection(BaseModel):
     system: Union[Linux, Windows] = Field(default=Windows())
 
     class Config:
-        extra = 'forbid'
+        extra = "forbid"
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     build_example(Selection.schema())

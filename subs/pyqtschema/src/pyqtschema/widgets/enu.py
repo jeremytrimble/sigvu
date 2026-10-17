@@ -6,7 +6,6 @@ from pyqtschema.widgets.base import SchemaWidgetMixin, state_property
 
 
 class EnumSchemaWidget(SchemaWidgetMixin, QComboBox):
-
     @state_property
     def state(self):
         return self.itemData(self.currentIndex())

@@ -7,22 +7,22 @@ from jsonschema.validators import validator_for, validate
 
 
 def validate_schema_definition(schema: Dict):
-    """ TODO: validate the schema itself """
+    """TODO: validate the schema itself"""
 
 
 def schema_from_json(path: Path):
-    with open(path, 'r') as _input:
+    with open(path, "r") as _input:
         schema = load(_input)
     validate_schema_definition(schema)
     return schema
 
 
 def is_ref(schema: dict):
-    return '$ref' in schema
+    return "$ref" in schema
 
 
 class Schema:
-    """ Combines schema-related functionality """
+    """Combines schema-related functionality"""
 
     def __init__(self, schema: Dict, validator_cls=None):
         self.schema: Dict = schema
@@ -48,16 +48,16 @@ class Schema:
         return self.validator_cls(schema)
 
     def resolve_schema(self, schema: Dict) -> Dict:
-        """ resolve reference schema """
+        """resolve reference schema"""
         if is_ref(schema):
-            ident = schema['$ref']
-            _first, definition, key = ident.split('/')
+            ident = schema["$ref"]
+            _first, definition, key = ident.split("/")
             return self.schema[definition][key]
 
         return schema
 
     def definitions(self):
-        return self.schema.get('definitions', {})
+        return self.schema.get("definitions", {})
 
     @staticmethod
     def _enum_defaults(schema):
@@ -74,7 +74,7 @@ class Schema:
         return out
 
     def _array_defaults(self, schema):
-        items_schema = schema['items']
+        items_schema = schema["items"]
         if isinstance(items_schema, dict):
             return []
 
@@ -86,7 +86,7 @@ class Schema:
         if "default" in schema:
             return schema["default"]
 
-        if 'anyOf' in schema:
+        if "anyOf" in schema:
             return self._any_of_defaults(schema)
 
         if "enum" in schema:

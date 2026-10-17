@@ -35,7 +35,6 @@ class TextAreaSchemaWidget(SchemaWidgetMixin, QTextEdit):
 
 
 class PasswordWidget(TextSchemaWidget):
-
     def configure(self):
         super().configure()
 

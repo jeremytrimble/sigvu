@@ -7,51 +7,72 @@ from .schema import Schema
 
 
 def get_schema_type(schema: dict) -> str:
-    return schema['type']
+    return schema["type"]
 
 
 def has_schema_type(schema: Dict) -> bool:
-    return 'type' in schema
+    return "type" in schema
 
 
 def is_enum(schema: dict):
-    return 'enum' in schema
+    return "enum" in schema
 
 
 def is_any_of(schema: dict):
-    return 'anyOf' in schema
+    return "anyOf" in schema
 
 
 def is_all_of(schema: dict):
-    return 'allOf' in schema
+    return "allOf" in schema
 
 
 class IBuilder:
-    """ Defines a builder-interface """
+    """Defines a builder-interface"""
 
     @abstractmethod
-    def create_widget(self, schema: dict, ui_schema: dict, state=None) -> 'SchemaWidgetMixin':
+    def create_widget(
+        self, schema: dict, ui_schema: dict, state=None
+    ) -> "SchemaWidgetMixin":
         raise NotImplementedError()
 
 
 class WidgetBuilder(IBuilder):
     default_widget_map = {
-        "boolean": {"checkbox": widgets.CheckboxSchemaWidget, "enum": widgets.EnumSchemaWidget},
-        "object": {"object": widgets.ObjectSchemaWidget, "enum": widgets.EnumSchemaWidget},
-        "number": {"spin": widgets.SpinDoubleSchemaWidget, "text": widgets.TextSchemaWidget,
-                   "enum": widgets.EnumSchemaWidget},
-        "string": {"textarea": widgets.TextAreaSchemaWidget, "text": widgets.TextSchemaWidget,
-                   "password": widgets.PasswordWidget,
-                   "path": widgets.FilepathSchemaWidget, "filepath": widgets.FilepathSchemaWidget,
-                   "dirpath": widgets.DirectoryPathSchemaWidget,
-                   "directory-path": widgets.DirectoryPathSchemaWidget,
-                   "colour": widgets.ColorSchemaWidget, "enum": widgets.EnumSchemaWidget},
-        "integer": {"spin": widgets.SpinSchemaWidget, "text": widgets.TextSchemaWidget,
-                    "range": widgets.IntegerRangeSchemaWidget,
-                    "enum": widgets.EnumSchemaWidget},
+        "boolean": {
+            "checkbox": widgets.CheckboxSchemaWidget,
+            "enum": widgets.EnumSchemaWidget,
+        },
+        "object": {
+            "object": widgets.ObjectSchemaWidget,
+            "enum": widgets.EnumSchemaWidget,
+        },
+        "number": {
+            "spin": widgets.SpinDoubleSchemaWidget,
+            "text": widgets.TextSchemaWidget,
+            "enum": widgets.EnumSchemaWidget,
+        },
+        "string": {
+            "textarea": widgets.TextAreaSchemaWidget,
+            "text": widgets.TextSchemaWidget,
+            "password": widgets.PasswordWidget,
+            "path": widgets.FilepathSchemaWidget,
+            "filepath": widgets.FilepathSchemaWidget,
+            "dirpath": widgets.DirectoryPathSchemaWidget,
+            "directory-path": widgets.DirectoryPathSchemaWidget,
+            "colour": widgets.ColorSchemaWidget,
+            "enum": widgets.EnumSchemaWidget,
+        },
+        "integer": {
+            "spin": widgets.SpinSchemaWidget,
+            "text": widgets.TextSchemaWidget,
+            "range": widgets.IntegerRangeSchemaWidget,
+            "enum": widgets.EnumSchemaWidget,
+        },
         "array": {"array": widgets.ArraySchemaWidget, "enum": widgets.EnumSchemaWidget},
         "enum": {"enum": widgets.EnumSchemaWidget},
-        "anyOf": {"anyOf": widgets.AnyOfSchemaWidget, },
+        "anyOf": {
+            "anyOf": widgets.AnyOfSchemaWidget,
+        },
     }
 
     default_widget_variants = {
@@ -66,21 +87,24 @@ class WidgetBuilder(IBuilder):
         "directory-path": "dirpath",
     }
 
-    widget_variant_modifiers = {
-        "string": lambda schema: schema.get("format", "text")
-    }
+    widget_variant_modifiers = {"string": lambda schema: schema.get("format", "text")}
 
     def __init__(self, schema: Union[Dict, Schema], validator_cls=None):
         self.widget_map = deepcopy(self.default_widget_map)
 
-        self.schema: Schema = schema if isinstance(schema, Schema) else Schema(schema, validator_cls=validator_cls)
+        self.schema: Schema = (
+            schema
+            if isinstance(schema, Schema)
+            else Schema(schema, validator_cls=validator_cls)
+        )
         self.schema.check_schema()
 
-    def create_form(self,
-                    ui_schema: Optional[Dict] = None,
-                    state: Optional[Dict] = None,
-                    parent=None) \
-            -> widgets.SchemaWidgetMixin:
+    def create_form(
+        self,
+        ui_schema: Optional[Dict] = None,
+        state: Optional[Dict] = None,
+        parent=None,
+    ) -> widgets.SchemaWidgetMixin:
         if ui_schema is None:
             ui_schema = {}
 
@@ -108,7 +132,9 @@ class WidgetBuilder(IBuilder):
             return self.schema.compute_defaults(schema)
         return state
 
-    def create_widget(self, schema: dict, ui_schema: dict, state=None, parent=None) -> widgets.SchemaWidgetMixin:
+    def create_widget(
+        self, schema: dict, ui_schema: dict, state=None, parent=None
+    ) -> widgets.SchemaWidgetMixin:
         schema = self.schema.resolve_schema(schema)
 
         if has_schema_type(schema):
@@ -116,15 +142,17 @@ class WidgetBuilder(IBuilder):
         elif is_enum(schema):
             # schema created with pydantic do not have a type key for enum-values, always.
             # Therefore, the schema type "enum" is used in this case.
-            schema_type = 'enum'
+            schema_type = "enum"
         elif is_any_of(schema):
-            schema_type = 'anyOf'
+            schema_type = "anyOf"
         elif is_all_of(schema):
             # workaround for interesting allOf-pydantic behaviour
-            if len(schema.get('allOf', [])) == 1:
-                return self.create_widget(schema['allOf'][0], ui_schema, state=state, parent=parent)
+            if len(schema.get("allOf", [])) == 1:
+                return self.create_widget(
+                    schema["allOf"][0], ui_schema, state=state, parent=parent
+                )
             else:
-                raise NotImplementedError('allOf is not supported')
+                raise NotImplementedError("allOf is not supported")
 
         try:
             default_variant = self.widget_variant_modifiers[schema_type](schema)
@@ -134,7 +162,7 @@ class WidgetBuilder(IBuilder):
         if "enum" in schema:
             default_variant = "enum"
 
-        widget_variant = ui_schema.get('ui:widget', default_variant)
+        widget_variant = ui_schema.get("ui:widget", default_variant)
         widget_cls = self.widget_map[schema_type][widget_variant]
 
         widget = widget_cls(schema, ui_schema, self, parent=parent)

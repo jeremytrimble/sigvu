@@ -62,7 +62,10 @@ def test_calculate_input_sample_range_for_frame_range_rejects_invalid_ranges(
         hop_samples=4,
     )
 
-    assert calc.calculate_input_sample_range_for_frame_range(start_frame, end_frame) is None
+    assert (
+        calc.calculate_input_sample_range_for_frame_range(start_frame, end_frame)
+        is None
+    )
 
 
 def test_calculate_stft_frames_using_callback_matches_direct_path() -> None:
@@ -81,11 +84,15 @@ def test_calculate_stft_frames_using_callback_matches_direct_path() -> None:
 
     start_frame = 1
     end_frame = 3
-    required_range = calc.calculate_input_sample_range_for_frame_range(start_frame, end_frame)
+    required_range = calc.calculate_input_sample_range_for_frame_range(
+        start_frame, end_frame
+    )
     assert required_range is not None
 
     direct = calc.calculate_stft_frames_given_required_input_data(
-        input_data=signal[required_range.start_sample_idx : required_range.end_sample_idx],
+        input_data=signal[
+            required_range.start_sample_idx : required_range.end_sample_idx
+        ],
         input_sample_base_idx=required_range.start_sample_idx,
         start_frame=start_frame,
         end_frame=end_frame,
@@ -122,19 +129,27 @@ def test_single_frame_matches_same_frame_from_batch() -> None:
     batch_start = 1
     batch_end = 5
 
-    single_required = calc.calculate_input_sample_range_for_frame_range(single_start, single_end)
+    single_required = calc.calculate_input_sample_range_for_frame_range(
+        single_start, single_end
+    )
     assert single_required is not None
     single_frame = calc.calculate_stft_frames_given_required_input_data(
-        input_data=signal[single_required.start_sample_idx : single_required.end_sample_idx],
+        input_data=signal[
+            single_required.start_sample_idx : single_required.end_sample_idx
+        ],
         input_sample_base_idx=single_required.start_sample_idx,
         start_frame=single_start,
         end_frame=single_end,
     )
 
-    batch_required = calc.calculate_input_sample_range_for_frame_range(batch_start, batch_end)
+    batch_required = calc.calculate_input_sample_range_for_frame_range(
+        batch_start, batch_end
+    )
     assert batch_required is not None
     batch_frames = calc.calculate_stft_frames_given_required_input_data(
-        input_data=signal[batch_required.start_sample_idx : batch_required.end_sample_idx],
+        input_data=signal[
+            batch_required.start_sample_idx : batch_required.end_sample_idx
+        ],
         input_sample_base_idx=batch_required.start_sample_idx,
         start_frame=batch_start,
         end_frame=batch_end,
