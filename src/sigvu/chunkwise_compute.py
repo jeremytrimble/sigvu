@@ -21,7 +21,7 @@ from functools import lru_cache
 import shutil
 import atexit
 
-from specview.monotonic_axis import MonotonicAxis
+from sigvu.monotonic_axis import MonotonicAxis
 log = logging.getLogger("chunkwise_compute")
 
 import threading
@@ -212,7 +212,7 @@ class CacheManager:
     @classmethod
     def get_default_cache_manager(cls) -> CacheManager:
         my_pid = os.getpid()
-        default_cache_dir = Path(user_cache_dir("specview", "jeremytrimble", ensure_exists=True)) / f"ccache.{my_pid}"
+        default_cache_dir = Path(user_cache_dir("sigvu", "jeremytrimble", ensure_exists=True)) / f"ccache.{my_pid}"
         return CacheManager(default_cache_dir)
 
     @classmethod

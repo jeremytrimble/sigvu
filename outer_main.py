@@ -1,2 +1,2 @@
-from specview.main import main
+from sigvu.main import main
 main()

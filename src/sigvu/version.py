@@ -1,4 +1,4 @@
-"""Version information management for specview."""
+"""Version information management for sigvu."""
 
 import json
 from dataclasses import dataclass
@@ -24,7 +24,7 @@ class VersionInfo:
     def __str__(self) -> str:
         """Format version information for display."""
         return (
-            f"specview v{self.version}\n"
+            f"SigVU v{self.version}\n"
             f"Git: {self.git_description}, hash: {self.git_hash[:7]}\n"
             f"Build Date: {self.build_date}"
         )

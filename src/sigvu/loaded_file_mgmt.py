@@ -736,7 +736,7 @@ class LoadedFile:
         # to "mark" it in a way that we can find after insertion and sorting.
         # Longer-term, maybe we need to write our own sigmf file implementation...
 
-        INSERTION_MARKER_KEY = "_specview_insertion_marker"
+        INSERTION_MARKER_KEY = "_sigvu_insertion_marker"
         INSERTION_MARKER_VALUE = rnd.randint(0,1000000)
         metadata = dict(metadata)
         metadata[INSERTION_MARKER_KEY] = INSERTION_MARKER_VALUE

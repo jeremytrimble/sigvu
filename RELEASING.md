@@ -1,8 +1,8 @@
-# Making a `specview` release.
+# Making a `sigvu` release.
 
 ## Update source files:
 1. Pick a PEP-440-compliant version string.
-2. Set the `__version__` string at the top of `src/specview/version.py`.
+2. Set the `__version__` string at the top of `src/sigvu/version.py`.
 3. Set the `version` in `pyproject.toml`.
 4. Add a corresponding entry to `CHANGELOG.md`.
 
@@ -11,8 +11,8 @@
 2. Make sure pyinstaller build works (at least locally): `uv run --group build --group dev poe build`
 
 The `poe build` task produces both artifacts under `dist/`:
-- `specview-<version>-*.whl` — installable Python wheel
-- `specview` — self-contained PyInstaller binary (Linux)
+- `sigvu-<version>-*.whl` — installable Python wheel
+- `sigvu` — self-contained PyInstaller binary (Linux)
 
 ## Create a GitHub release:
 1. Commit the updated files and create an annotated tag:
@@ -22,14 +22,14 @@ The `poe build` task produces both artifacts under `dist/`:
    ```
 2. On GitHub, go to **Releases → Draft a new release** and select the tag.
 3. Write release notes summarising what changed (copy from `CHANGELOG.md`).
-4. Attach the PyInstaller binary (`dist/specview`) and the wheel (`dist/specview-*.whl`) as release assets.
+4. Attach the PyInstaller binary (`dist/sigvu`) and the wheel (`dist/sigvu-*.whl`) as release assets.
 5. Publish the release.
 
 ## Upload to PyPI:
 ```
-uv run twine upload dist/specview-*.whl
+uv run twine upload dist/sigvu-*.whl
 ```
 or
 ```
-uv publish dist/specview-*.whl
+uv publish dist/sigvu-*.whl
 ```

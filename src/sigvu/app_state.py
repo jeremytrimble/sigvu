@@ -7,12 +7,12 @@ from contextlib import contextmanager
 import sigmf
 from pathlib import Path
 import dataclasses
-from specview.loaded_file_mgmt import (
+from sigvu.loaded_file_mgmt import (
     LoadedAnnotationDict, LoadedCaptureDict, LoadedDictAction, LoadedFile, LoadedFileAction, LoadedFilesCollection, FileID, CaptureID, AnnotationID,
 )
-from specview.util import measure_runtime, first_from_dict
-from specview.chunkwise_compute import CacheManager, FrequencyDomainComputationSpec, FFTLength
-from specview.ui_constants import SETTINGS_ORGANIZATION, SETTINGS_APPLICATION
+from sigvu.util import measure_runtime, first_from_dict
+from sigvu.chunkwise_compute import CacheManager, FrequencyDomainComputationSpec, FFTLength
+from sigvu.ui_constants import SETTINGS_ORGANIZATION, SETTINGS_APPLICATION
 import numpy as np
 
 import logging

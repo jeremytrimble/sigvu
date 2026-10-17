@@ -6,9 +6,9 @@ import numpy as np
 from pathlib import Path
 from sigmf import SigMFFile
 
-from specview.annotations_table import AnnotationsModel, AnnotationsTable
-from specview.loaded_file_mgmt import LoadedFilesCollection, CacheManager
-from specview.app_state import AppState
+from sigvu.annotations_table import AnnotationsModel, AnnotationsTable
+from sigvu.loaded_file_mgmt import LoadedFilesCollection, CacheManager
+from sigvu.app_state import AppState
 
 
 @pytest.fixture

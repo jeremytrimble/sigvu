@@ -35,7 +35,7 @@ exe = EXE(
     a.binaries,
     a.datas,
     [],
-    name='specview',
+    name='sigvu',
     debug=False,
     bootloader_ignore_signals=False,
     strip=False,

@@ -1,7 +1,7 @@
 import sys
 from PyQt6.QtWidgets import QApplication
 from PyQt6.QtCore import Qt
-from specview.json_editor_dialog import JSONEditorDialog
+from sigvu.json_editor_dialog import JSONEditorDialog
 
 def main():
     """Interactive test for JSONEditorDialog."""

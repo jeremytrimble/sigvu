@@ -2,15 +2,15 @@
 Test generating and loading SigMF files with all supported binary formats.
 
 This test module generates SigMF files containing data in all 20 sigmf-supported
-binary formats and verifies that specview can successfully open and load them.
+binary formats and verifies that sigvu can successfully open and load them.
 """
 
 import pytest
 import numpy as np
 from pathlib import Path
 from sigmf import SigMFFile
-from specview.loaded_file_mgmt import LoadedFilesCollection, CacheManager
-from specview.chunkwise_compute import (
+from sigvu.loaded_file_mgmt import LoadedFilesCollection, CacheManager
+from sigvu.chunkwise_compute import (
     RawTimeDomainComputationSpec,
     FrequencyDomainComputationSpec,
     FFTLength,
@@ -219,7 +219,7 @@ def test_sigmf_format_generation_and_loading(tmpdir, sigmf_dtype, nfft:FFTLength
     
     This test:
     1. Generates a SigMF file with test data in the specified format
-    2. Loads the file using LoadedFilesCollection (specview's file loading mechanism)
+    2. Loads the file using LoadedFilesCollection (sigvu's file loading mechanism)
     3. Verifies that the file loads successfully
     4. Verifies that basic metadata is correctly preserved
     """
@@ -231,7 +231,7 @@ def test_sigmf_format_generation_and_loading(tmpdir, sigmf_dtype, nfft:FFTLength
     data_path = meta_path.with_suffix('.sigmf-data')
     assert data_path.exists(), f"Data file not created for {sigmf_dtype}"
     
-    # Load the file using specview's LoadedFilesCollection
+    # Load the file using sigvu's LoadedFilesCollection
     cache_manager = CacheManager(base_path=Path(tmpdir/"cache"))
     lfc = LoadedFilesCollection(cache_manager=cache_manager)
     loaded_file = lfc.load_file(meta_path)

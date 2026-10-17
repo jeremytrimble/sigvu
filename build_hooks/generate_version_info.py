@@ -54,5 +54,5 @@ def generate_version_info(target_dir: str | Path) -> None:
 
 if __name__ == "__main__":
     # When run directly, generate in the current package
-    pkg_dir = Path(__file__).parent.parent / "src" / "specview"
+    pkg_dir = Path(__file__).parent.parent / "src" / "sigvu"
     generate_version_info(pkg_dir)

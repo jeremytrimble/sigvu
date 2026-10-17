@@ -4,7 +4,7 @@ import numpy as np
 import numpy.typing as npt
 import pyqtgraph as pg
 
-from specview.monotonic_axis import MonotonicAxis
+from sigvu.monotonic_axis import MonotonicAxis
 
 from .ui_constants import INTERVAL_ROI_COLOR
 from .roi_select_viewboxes import IntervalSelectViewBox

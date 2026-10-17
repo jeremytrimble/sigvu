@@ -1,7 +1,7 @@
 """Dialog for seeking to a specific time in all plots."""
 from PyQt6.QtWidgets import QDialog, QVBoxLayout, QHBoxLayout, QLineEdit, QPushButton, QLabel
 from PyQt6.QtCore import Qt
-from specview.util import parse_time_str
+from sigvu.util import parse_time_str
 
 
 class GotoTimeDialog(QDialog):

@@ -1,4 +1,4 @@
-from specview.chunkwise_compute import (
+from sigvu.chunkwise_compute import (
     CacheManager, TimeDomainChunkwiseComputedArray,
     RawTimeDomainComputationSpec, 
     RealComponentTimeDomainComputationSpec,

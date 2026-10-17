@@ -4,7 +4,7 @@ from pathlib import Path
 import numpy as np
 from sigmf import SigMFFile
 
-from specview.app_state import AppState
+from sigvu.app_state import AppState
 
 
 @pytest.fixture(scope="module")

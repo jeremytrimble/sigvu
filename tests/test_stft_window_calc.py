@@ -1,7 +1,7 @@
 import numpy as np
 import pytest
 
-from specview.chunkwise_compute import STFTWindowCalculator, WindowType
+from sigvu.chunkwise_compute import STFTWindowCalculator, WindowType
 
 
 def test_num_frames_uses_floor_division() -> None:

@@ -1,4 +1,4 @@
-from specview.util import duration_format, freq_format, parse_unit_prefix, parse_time_str, parse_freq_str
+from sigvu.util import duration_format, freq_format, parse_unit_prefix, parse_time_str, parse_freq_str
 import pytest
 
 

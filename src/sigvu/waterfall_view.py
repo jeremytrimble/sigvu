@@ -4,7 +4,7 @@ import pyqtgraph as pg
 import numpy as np
 
 from .loaded_file_mgmt import CaptureID, LoadedDictAction, AnnotationID, LoadedAnnotationDict
-from specview.util import region_from_rectroi
+from sigvu.util import region_from_rectroi
 
 from .app_state import AppState
 

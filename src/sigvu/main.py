@@ -12,8 +12,8 @@ from pathlib import Path
 import argparse
 import sys
 
-from specview.version import get_version_info
-from specview.util import measure_runtime
+from sigvu.version import get_version_info
+from sigvu.util import measure_runtime
 
 from .time_view import TimeView
 from .specan_view import SpecanView
@@ -26,7 +26,7 @@ from .ui_constants import SETTINGS_ORGANIZATION, SETTINGS_APPLICATION
 from .loaded_file_mgmt import LoadedFile, LoadedFileAction, FileID, CaptureID, LoadedDictAction
 from .app_state import AppState
 
-log = logging.getLogger("specview")
+log = logging.getLogger("sigvu")
 
 
 from .menu import populate_menubar
@@ -45,7 +45,7 @@ class MainWindow(QMainWindow):
 
         # Get version info and set window title
         version_info = get_version_info()
-        self.setWindowTitle(f"Specview v{version_info.version}")
+        self.setWindowTitle(f"SigVU v{version_info.version}")
 
         layout = QGridLayout() # overall layout
 
@@ -257,7 +257,7 @@ class MainWindow(QMainWindow):
         self._statusbar.showMessage(msg)
 
 def parse_args():
-    parser = argparse.ArgumentParser(prog="specview", description="Display and annotate SigMF files")
+    parser = argparse.ArgumentParser(prog="sigvu", description="Display and annotate SigMF files")
     parser.add_argument("--log-level", choices=["DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL"],
                       default="WARNING", help="Set the logging level (default: INFO)")
     parser.add_argument("--version", action="version", version=str(get_version_info()))

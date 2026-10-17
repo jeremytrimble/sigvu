@@ -3,7 +3,7 @@ import numpy as np
 from pathlib import Path
 import pytest
 
-from specview.loaded_file_mgmt import LoadedFilesCollection, CacheManager
+from sigvu.loaded_file_mgmt import LoadedFilesCollection, CacheManager
 
 
 def generate_test_sigmffile(tmpdir) -> Path:

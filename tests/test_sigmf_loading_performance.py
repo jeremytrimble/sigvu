@@ -64,9 +64,9 @@ from PyQt6.QtCore import QSettings, QThreadPool, QTimer, QEventLoop
 from PyQt6.QtTest import QTest
 import time
 
-from specview.main import MainWindow
-from specview.app_state import AppState
-from specview.ui_constants import SETTINGS_ORGANIZATION, SETTINGS_APPLICATION
+from sigvu.main import MainWindow
+from sigvu.app_state import AppState
+from sigvu.ui_constants import SETTINGS_ORGANIZATION, SETTINGS_APPLICATION
 
 
 def generate_sigmf_file_with_annotations(

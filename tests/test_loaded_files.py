@@ -3,7 +3,7 @@ import numpy as np
 from pathlib import Path
 import sigmf
 
-from specview.loaded_file_mgmt import LoadedAnnotationDict, LoadedCaptureDict, LoadedDictAction, LoadedFile, LoadedFileAction, LoadedFilesCollection, CacheManager, FileID, CaptureID, AnnotationID
+from sigvu.loaded_file_mgmt import LoadedAnnotationDict, LoadedCaptureDict, LoadedDictAction, LoadedFile, LoadedFileAction, LoadedFilesCollection, CacheManager, FileID, CaptureID, AnnotationID
 
 
 def generate_example_sigmffile(tmpdir) -> Path:

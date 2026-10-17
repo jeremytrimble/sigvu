@@ -1,4 +1,4 @@
-from specview.chunkwise_compute import ProcessingPoolManager, RangeComputedCallback
+from sigvu.chunkwise_compute import ProcessingPoolManager, RangeComputedCallback
 
 import time
 

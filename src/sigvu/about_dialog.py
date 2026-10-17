@@ -10,13 +10,13 @@ class AboutDialog(QDialog):
     
     def __init__(self, parent=None):
         super().__init__(parent)
-        self.setWindowTitle("About Specview")
+        self.setWindowTitle("About SigVU")
         # Remove the context help button
         self.setWindowFlags(self.windowFlags() & ~Qt.WindowType.WindowContextHelpButtonHint)
         
         layout = QVBoxLayout()
 
-        msg = f"This is Specview\nA SigMF visualization and annotation tool.\n\nCopyright 2025-2026 Jeremy Trimble\n\n{str(get_version_info())}"
+        msg = f"This is SigVU\nA SigMF visualization and annotation tool.\n\nCopyright 2025-2026 Jeremy Trimble\n\n{str(get_version_info())}"
         
         # Create version info label with wider minimum width
         version_label = QLabel(msg)

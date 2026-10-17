@@ -4,9 +4,9 @@ from pathlib import Path
 from unittest.mock import Mock
 import pytest
 
-from specview.loaded_file_mgmt import LoadedFilesCollection, CacheManager
-from specview.app_state import AppState
-from specview.menu import create_annotation_from_selection
+from sigvu.loaded_file_mgmt import LoadedFilesCollection, CacheManager
+from sigvu.app_state import AppState
+from sigvu.menu import create_annotation_from_selection
 
 
 def generate_test_sigmffile(tmpdir) -> Path:
@@ -45,7 +45,7 @@ def test_create_annotation_with_time_only(tmpdir, monkeypatch):
     mock_app.app_state.get_capture_by_id.return_value = lf._capture_id_to_capture[first_capture_id]
     
     # Patch QApplication.instance()
-    monkeypatch.setattr('specview.menu.QApplication.instance', lambda: mock_app)
+    monkeypatch.setattr('sigvu.menu.QApplication.instance', lambda: mock_app)
     
     # Create annotation
     create_annotation_from_selection()
@@ -83,7 +83,7 @@ def test_create_annotation_with_time_and_frequency(tmpdir, monkeypatch):
     mock_app.app_state.get_capture_by_id.return_value = lf._capture_id_to_capture[first_capture_id]
     
     # Patch QApplication.instance()
-    monkeypatch.setattr('specview.menu.QApplication.instance', lambda: mock_app)
+    monkeypatch.setattr('sigvu.menu.QApplication.instance', lambda: mock_app)
     
     # Create annotation
     create_annotation_from_selection()
@@ -121,7 +121,7 @@ def test_create_annotation_no_time_selection(tmpdir, monkeypatch):
     mock_app.app_state.get_capture_by_id.return_value = lf._capture_id_to_capture[first_capture_id]
     
     # Patch QApplication.instance()
-    monkeypatch.setattr('specview.menu.QApplication.instance', lambda: mock_app)
+    monkeypatch.setattr('sigvu.menu.QApplication.instance', lambda: mock_app)
     
     # Create annotation
     create_annotation_from_selection()
@@ -146,7 +146,7 @@ def test_create_annotation_no_capture_selected(tmpdir, monkeypatch):
     mock_app.app_state._selected_capture = None  # No capture selected
     
     # Patch QApplication.instance()
-    monkeypatch.setattr('specview.menu.QApplication.instance', lambda: mock_app)
+    monkeypatch.setattr('sigvu.menu.QApplication.instance', lambda: mock_app)
     
     # Create annotation
     create_annotation_from_selection()

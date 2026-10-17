@@ -1,5 +1,5 @@
 from pathlib import Path
-from specview.chunkwise_compute import ChunkBitmap
+from sigvu.chunkwise_compute import ChunkBitmap
 
 def test_chunk_bitmap2_basic_operations(tmpdir):
     # Create a temporary file path for testing

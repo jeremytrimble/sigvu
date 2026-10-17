@@ -4,7 +4,7 @@ from PyQt6.QtWidgets import QGraphicsSceneMouseEvent
 
 import typing
 
-from specview.util import region_from_rectroi
+from sigvu.util import region_from_rectroi
 CallbackType = typing.Callable[ [ tuple[float, float] | None ], None ]
 
 class IntervalSelectViewBox(pg.ViewBox):
