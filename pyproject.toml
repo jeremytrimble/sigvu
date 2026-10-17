@@ -1,6 +1,6 @@
 [project]
 name = "sigvu"
-version = "0.3.0"
+version = "0.4.0"
 description = "SigMF File Viewer and Annotation Editor"
 readme = "README.md"
 license = { file = "LICENSE" }
