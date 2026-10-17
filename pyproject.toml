@@ -73,14 +73,28 @@ testpaths = [
 ]
 
 [build-system]
-requires = ["setuptools>=61.0"]
-build-backend = "setuptools.build_meta"
+requires = ["hatchling>=1.32.4"]
+build-backend = "hatchling.build"
 
-[tool.setuptools.package-dir]
-sigvu = "src/sigvu"
-pyqtschema = "subs/pyqtschema/src/pyqtschema"
+[tool.hatch.build.targets.wheel]
+packages = ["src/sigvu", "subs/pyqtschema/src/pyqtschema"]
+artifacts = ["src/sigvu/version_info.json"]
 
-# TODO: make the build backend generate the version info for a wheel file
+[tool.hatch.build.targets.sdist]
+include = [
+    "/src",
+    "/subs/pyqtschema/src",
+    "/subs/pyqtschema/LICENSE",
+    "/build_hooks",
+    "/hatch_build.py",
+    "/README.md",
+    "/LICENSE",
+    "/CHANGELOG.md",
+]
+artifacts = ["src/sigvu/version_info.json"]
+
+[tool.hatch.build.hooks.custom]
+path = "hatch_build.py"
 
 [tool.poe.tasks]
 test = "pytest tests/"
