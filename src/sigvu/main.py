@@ -31,6 +31,7 @@ import logging
 
 from pathlib import Path
 import argparse
+import multiprocessing
 import sys
 
 from sigvu.version import get_version_info
@@ -349,6 +350,10 @@ def parse_args():
 
 
 def main():
+    # Lets a spawned pool worker run its task instead of building a second GUI.
+    # Must come before arg parsing and Qt setup. No-op when not frozen.
+    multiprocessing.freeze_support()
+
     args = parse_args()
 
     # Set up logging with the specified level
