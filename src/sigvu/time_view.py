@@ -36,7 +36,9 @@ class TimeView(QWidget):
             labels={"left": "Amplitude", "bottom": "Time [seconds]"}, viewBox=myvb
         )
         self._time_plot.setMouseEnabled(x=True, y=True)
-        self._time_plot.setYRange(-1.1, 1.1)
+        # Fit Y to the samples on screen, whatever their amplitude. pyqtgraph
+        # drops this once the user scales Y by hand.
+        self._time_plot.enableAutoRange(axis="y")
 
         self._time_plot_curve_i = self._time_plot.plot(
             [], name="real", pen=pg.mkPen("b")
@@ -55,6 +57,9 @@ class TimeView(QWidget):
         self._selected_capture_id: CaptureID | None = None
 
         self._time_interval: tuple[float, float] | None = None
+
+        # Last time window requested, used to ignore Y-only range changes.
+        self._last_requested_x_range: tuple[float, float] | None = None
 
         layout = QHBoxLayout()
 
@@ -159,6 +164,9 @@ class TimeView(QWidget):
         self._selected_capture_id = capture_id
         self._annotation_manager.set_current_capture(capture_id)
 
+        # A new capture needs fresh data even if the time window is unchanged.
+        self._last_requested_x_range = None
+
         app_state = self._get_app_state()
         capture = app_state.get_capture_by_id(capture_id)
         loaded_file = capture.parent_loadedfile
@@ -213,9 +221,21 @@ class TimeView(QWidget):
     ):
         x_range, y_range = the_range
         x_min_sec, x_max_sec = x_range
-        # plot_widget.setYRange(-1.1, 1.1)  # keep y range fixed, TODO: this is probably not the best way to do this
 
         # TODO: enforce maximum zoom-out here?
+
+        # Y autoranging re-emits sigRangeChanged, so only refetch when the time
+        # window itself moved; otherwise every Y change starts a stray worker.
+        if self._last_requested_x_range is not None:
+            prev_min_sec, prev_max_sec = self._last_requested_x_range
+            tol = max(prev_max_sec - prev_min_sec, 1e-12) * 1e-6
+            if (
+                abs(x_min_sec - prev_min_sec) <= tol
+                and abs(x_max_sec - prev_max_sec) <= tol
+            ):
+                return
+
+        self._last_requested_x_range = (x_min_sec, x_max_sec)
 
         self._update_displayed_data(x_min_sec, x_max_sec)
 
