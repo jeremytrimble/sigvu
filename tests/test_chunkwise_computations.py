@@ -16,6 +16,10 @@ import pytest
 from contextlib import closing
 import threading
 
+# Under "spawn" each worker re-imports numpy/scipy/sigvu, so the first chunk
+# takes seconds (~5s here) rather than being near-instant as it is under fork.
+CALLBACK_TIMEOUT_SEC = 120.0
+
 
 def generate_numpy_binary_file(path: Path, num_samples: int):
     """Generate a binary file with the specified number of complex64 samples."""
@@ -80,7 +84,7 @@ def test_chunkwise_computation_timedomain(tmpdir):
         computed_array.get_range_callback(
             start_sample, end_sample, cb
         )  # Just to test the callback
-        evt.wait(timeout=3)
+        evt.wait(timeout=CALLBACK_TIMEOUT_SEC)
         assert evt.is_set()
 
         data = saved["data"]
@@ -146,7 +150,7 @@ def test_chunkwise_computation_frequency_domain(tmpdir):
         # computed_array.get_range_callback(0, 10, cb)  # Just to test no exceptions
         computed_array.get_range_callback(0, 1000, cb)  # Just to test no exceptions
 
-        evt.wait(timeout=3)
+        evt.wait(timeout=CALLBACK_TIMEOUT_SEC)
         assert evt.is_set()
 
         print(f"data.shape = {saved['data'].shape}")
